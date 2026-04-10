@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(npx create-next-app@latest passagens-aereas --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init --yes --defaults)",
+      "Bash(npx shadcn@latest add card input label select textarea badge dialog dropdown-menu avatar table separator tabs form toast sonnet --yes)",
+      "Bash(npx shadcn@latest add card input label select textarea badge dialog dropdown-menu avatar table separator tabs form sonner --yes)",
+      "Bash(npx shadcn@latest add form --yes)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
