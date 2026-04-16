@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── NextAuth required models ────────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  ext_expires_in    Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Application models ──────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  personalEmail String?
+  role          Role      @default(COLABORADOR)
+  managerId     String?
+  manager2Id    String?
+
+  manager    User?  @relation("ManagerToEmployee", fields: [managerId], references: [id])
+  employees  User[] @relation("ManagerToEmployee")
+  manager2   User?  @relation("Manager2ToEmployee", fields: [manager2Id], references: [id])
+  employees2 User[] @relation("Manager2ToEmployee")
+
+  accounts Account[]
+  sessions Session[]
+
+  requests         TravelRequest[] @relation("RequesterRequests")
+  managedRequests  TravelRequest[] @relation("ManagerRequests")
+  managedRequests2 TravelRequest[] @relation("Manager2Requests")
+  quotations       Quotation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  MASTER
+  GESTOR
+  FINANCEIRO
+  COLABORADOR
+}
+
+model TravelRequest {
+  id              String        @id @default(cuid())
+  requesterId     String
+  managerId       String
+  manager2Id      String?
+  destination     String
+  departureDate   DateTime
+  returnDate      DateTime
+  reason          String        @db.Text
+  status          RequestStatus @default(PENDING_MANAGER)
+  rejectionReason String?       @db.Text
+
+  requester User       @relation("RequesterRequests", fields: [requesterId], references: [id])
+  manager   User       @relation("ManagerRequests", fields: [managerId], references: [id])
+  manager2  User?      @relation("Manager2Requests", fields: [manager2Id], references: [id])
+  quotation Quotation?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum RequestStatus {
+  PENDING_MANAGER
+  REJECTED_BY_MANAGER
+  PENDING_MANAGER_2
+  REJECTED_BY_MANAGER_2
+  PENDING_QUOTATION
+  PENDING_TRAVELER
+  APPROVED
+  REJECTED_BY_TRAVELER
+  CANCELLED
+}
+
+model Quotation {
+  id             String  @id @default(cuid())
+  requestId      String  @unique
+  financialId    String
+  outboundFlight String
+  returnFlight   String?
+  airline        String
+  totalPrice     Float
+  currency       String  @default("BRL")
+  observations   String? @db.Text
+
+  request   TravelRequest @relation(fields: [requestId], references: [id])
+  financial User          @relation(fields: [financialId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
