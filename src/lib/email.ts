@@ -80,8 +80,6 @@ interface BaseProps {
   button: { label: string; url: string };
 }
 
-const iconPlaneInline = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="${GREEN_LIGHT_TXT}" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
-
 function baseTemplate(p: BaseProps) {
   return `<!DOCTYPE html>
 <html>
@@ -225,17 +223,20 @@ ${avatarBlock(data.requesterName)}
 <!-- Trajeto -->
 <tr><td style="padding:18px 22px;border-bottom:1px solid ${BORDER_SOFT};">
 ${sectionLabel("Trajeto")}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;">
 <tr>
-<td valign="top" width="40%">
-<p style="margin:0;font-size:11px;color:${LABEL_GRAY};">Ida</p>
-<p style="margin:3px 0 0;font-size:16px;font-weight:500;color:${TEXT_DARK};line-height:1.3;">${data.origin}</p>
+<td width="60" valign="top" style="font-size:11px;color:${LABEL_GRAY};text-transform:uppercase;letter-spacing:0.5px;font-weight:600;padding-top:2px;">Ida</td>
+<td valign="top">
+<p style="margin:0;font-size:15px;font-weight:500;color:${TEXT_DARK};line-height:1.3;">${data.origin} <span style="color:${GREEN_LIGHT_TXT};">→</span> ${data.destination}</p>
 <p style="margin:3px 0 0;font-size:12px;color:${LABEL_GRAY};">${fmtBR(data.departureDate)}</p>
 </td>
-<td valign="middle" align="center" width="20%">${iconPlaneInline}</td>
-<td valign="top" align="right" width="40%">
-<p style="margin:0;font-size:11px;color:${LABEL_GRAY};">Volta</p>
-<p style="margin:3px 0 0;font-size:16px;font-weight:500;color:${TEXT_DARK};line-height:1.3;">${data.destination}</p>
+</tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td width="60" valign="top" style="font-size:11px;color:${LABEL_GRAY};text-transform:uppercase;letter-spacing:0.5px;font-weight:600;padding-top:2px;">Volta</td>
+<td valign="top">
+<p style="margin:0;font-size:15px;font-weight:500;color:${TEXT_DARK};line-height:1.3;">${data.destination} <span style="color:${GREEN_LIGHT_TXT};">→</span> ${data.origin}</p>
 <p style="margin:3px 0 0;font-size:12px;color:${LABEL_GRAY};">${fmtBR(data.returnDate)}</p>
 </td>
 </tr>
