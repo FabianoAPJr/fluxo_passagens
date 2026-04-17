@@ -30,7 +30,6 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [showQuotationForm, setShowQuotationForm] = useState(false);
   const [quotation, setQuotation] = useState({
-    locatorCode: "",
     outboundDate: "",
     outboundOriginCode: "",
     outboundDestinationCode: "",
@@ -228,15 +227,6 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-1">
-            <Label>Código localizador</Label>
-            <Input
-              placeholder="Ex: PS515R"
-              value={quotation.locatorCode}
-              onChange={(e) => setQ({ locatorCode: e.target.value.toUpperCase() })}
-            />
-          </div>
-
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">
             <p className="text-sm font-semibold text-[#004d33]">Voo de ida *</p>
             <div className="grid grid-cols-3 gap-3">
