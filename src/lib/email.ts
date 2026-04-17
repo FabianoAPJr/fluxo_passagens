@@ -56,28 +56,37 @@ function baseTemplate(content: string) {
     <html>
     <head>
       <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
       <style>
-        body { font-family: Arial, sans-serif; background: #f0f0e0; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #004d33; color: #fff; padding: 24px 32px; }
-        .header h1 { margin: 0; font-size: 20px; }
-        .body { padding: 32px; color: #333; }
-        .footer { background: #f8f8f8; padding: 16px 32px; font-size: 12px; color: #888; border-top: 1px solid #eee; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
-        .badge-pending { background: #fff3cd; color: #856404; }
-        .badge-approved { background: #d1e7dd; color: #0f5132; }
-        .badge-rejected { background: #f8d7da; color: #842029; }
-        .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #004d33; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; }
-        .info-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-        .info-table td { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-        .info-table td:first-child { font-weight: bold; width: 40%; color: #555; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #f0f0e0; margin: 0; padding: 24px 12px; color: #2a2a2a; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 14px rgba(0,77,51,0.08); border: 1px solid #e8e8dc; }
+        .header { background: #004d33; color: #ffffff; padding: 32px 40px 28px; border-bottom: 3px solid #967439; }
+        .header .brand { margin: 0 0 6px; font-size: 11px; letter-spacing: 2.5px; color: #8ccfb4; text-transform: uppercase; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.2px; }
+        .body { padding: 36px 40px 12px; }
+        .body h2 { margin: 0 0 12px; color: #004d33; font-size: 20px; font-weight: 600; }
+        .body h3 { margin: 24px 0 8px; color: #004d33; font-size: 14px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+        .body p { line-height: 1.55; color: #3a3a3a; font-size: 14px; margin: 8px 0; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+        .info-table td { padding: 11px 0; border-bottom: 1px solid #eee6d6; font-size: 14px; vertical-align: top; }
+        .info-table tr:last-child td { border-bottom: none; }
+        .info-table td:first-child { font-weight: 600; width: 40%; color: #6b6b6b; font-size: 13px; }
+        .btn-wrap { text-align: center; padding: 12px 0 28px; }
+        .btn { display: inline-block; padding: 14px 36px; background: #004d33; color: #ffffff !important; text-decoration: none !important; border-radius: 6px; font-weight: 600; font-size: 14px; letter-spacing: 0.3px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.2px; }
+        .badge-approved { background: #bfd2c1; color: #004d33; }
+        .badge-rejected { background: #f6d9d9; color: #7a1f1f; }
+        .locator { color: #967439; font-weight: 700; letter-spacing: 1.2px; }
+        .footer { padding: 18px 40px; font-size: 12px; color: #8a8a80; background: #fafaf2; border-top: 1px solid #eee6d6; text-align: center; }
+        .footer a { color: #004d33; text-decoration: none; }
+        a { color: #004d33; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>✈ Sistema de Passagens Aéreas</h1>
-          <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.8;">SOMUS Capital</p>
+          <p class="brand">SOMUS Capital</p>
+          <h1>Sistema de Passagens Aéreas</h1>
         </div>
         <div class="body">${content}</div>
         <div class="footer">Este é um e-mail automático. Acesse o sistema para mais detalhes.</div>
@@ -107,7 +116,7 @@ export function emailNewRequest(data: TravelRequestEmailData) {
       <tr><td>Data de volta</td><td>${data.returnDate}</td></tr>
       <tr><td>Motivo</td><td>${data.reason}</td></tr>
     </table>
-    <a href="${data.requestUrl}" class="btn">Ver solicitação</a>
+    <div class="btn-wrap"><a href="${data.requestUrl}" class="btn">Ver solicitação</a></div>
   `);
 }
 
@@ -121,7 +130,7 @@ export function emailManagerApproved(data: TravelRequestEmailData) {
       <tr><td>Data de volta</td><td>${data.returnDate}</td></tr>
       <tr><td>Motivo</td><td>${data.reason}</td></tr>
     </table>
-    <a href="${data.requestUrl}" class="btn">Realizar cotação</a>
+    <div class="btn-wrap"><a href="${data.requestUrl}" class="btn">Realizar cotação</a></div>
   `);
 }
 
@@ -134,7 +143,7 @@ export function emailManagerRejected(data: TravelRequestEmailData & { rejectionR
       <tr><td>Data de ida</td><td>${data.departureDate}</td></tr>
       <tr><td>Motivo da negação</td><td>${data.rejectionReason}</td></tr>
     </table>
-    <a href="${data.requestUrl}" class="btn">Ver detalhes</a>
+    <div class="btn-wrap"><a href="${data.requestUrl}" class="btn">Ver detalhes</a></div>
   `);
 }
 
@@ -177,7 +186,7 @@ function flightBlock(label: string, q: QuotationEmailFields, leg: "outbound" | "
   if (!date && !origin && !airline) return "";
 
   return `
-    <h3 style="margin:20px 0 8px;color:#004d33;font-size:15px;">${label}</h3>
+    <h3>${label}</h3>
     <table class="info-table">
       ${date ? `<tr><td>Data</td><td>${fmtDate(date)}</td></tr>` : ""}
       ${origin || dest ? `<tr><td>Trecho</td><td>${origin ?? "—"} × ${dest ?? "—"}</td></tr>` : ""}
@@ -192,17 +201,17 @@ function accommodationBlock(q: QuotationEmailFields) {
   if (!q.accommodationType) return "";
   if (q.accommodationType === "APTO_SOMUS") {
     return `
-      <h3 style="margin:20px 0 8px;color:#004d33;font-size:15px;">Hospedagem</h3>
+      <h3>Hospedagem</h3>
       <table class="info-table">
         <tr><td>Opção</td><td>APTO DA SOMUS</td></tr>
       </table>
     `;
   }
   return `
-    <h3 style="margin:20px 0 8px;color:#004d33;font-size:15px;">Hospedagem</h3>
+    <h3>Hospedagem</h3>
     <table class="info-table">
-      <tr><td>Opção</td><td>Reserva externa</td></tr>
-      ${q.accommodationLink ? `<tr><td>Link/Detalhes</td><td><a href="${q.accommodationLink}">${q.accommodationLink}</a></td></tr>` : ""}
+      <tr><td>Opção</td><td><strong>Reserva externa</strong></td></tr>
+      ${q.accommodationLink ? `<tr><td>Link / Detalhes</td><td><a href="${q.accommodationLink}">${q.accommodationLink}</a></td></tr>` : ""}
     </table>
   `;
 }
@@ -214,14 +223,14 @@ export function emailQuotationReady(data: TravelRequestEmailData & { quotation: 
     <p>A área financeira realizou a cotação da sua viagem. Acesse o sistema para aprovar ou recusar.</p>
     <table class="info-table">
       <tr><td>Destino</td><td>${data.destination}</td></tr>
-      ${q.locatorCode ? `<tr><td>Código localizador</td><td><strong style="color:#967439;letter-spacing:1px;">${q.locatorCode}</strong></td></tr>` : ""}
+      ${q.locatorCode ? `<tr><td>Código localizador</td><td><span class="locator">${q.locatorCode}</span></td></tr>` : ""}
       <tr><td>Valor total</td><td><strong>${data.totalPrice}</strong></td></tr>
     </table>
     ${flightBlock("Voo de ida", q, "outbound")}
     ${flightBlock("Voo de volta", q, "return")}
     ${accommodationBlock(q)}
     ${q.observations ? `<p style="margin-top:16px;"><strong>Observações:</strong> ${q.observations}</p>` : ""}
-    <a href="${data.requestUrl}" class="btn">Ver cotação completa</a>
+    <div class="btn-wrap"><a href="${data.requestUrl}" class="btn">Ver cotação completa</a></div>
   `);
 }
 
@@ -235,7 +244,7 @@ export function emailTravelerApproved(data: TravelRequestEmailData & { airline: 
       <tr><td>Data de volta</td><td>${data.returnDate}</td></tr>
       <tr><td>Companhia</td><td>${data.airline}</td></tr>
     </table>
-    <a href="${data.requestUrl}" class="btn">Ver detalhes</a>
+    <div class="btn-wrap"><a href="${data.requestUrl}" class="btn">Ver detalhes</a></div>
   `);
 }
 
@@ -247,6 +256,6 @@ export function emailTravelerRejected(data: TravelRequestEmailData & { rejection
       <tr><td>Destino</td><td>${data.destination}</td></tr>
       <tr><td>Motivo</td><td>${data.rejectionReason}</td></tr>
     </table>
-    <a href="${data.requestUrl}" class="btn">Ver detalhes</a>
+    <div class="btn-wrap"><a href="${data.requestUrl}" class="btn">Ver detalhes</a></div>
   `);
 }
