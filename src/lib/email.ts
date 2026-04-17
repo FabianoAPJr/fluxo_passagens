@@ -138,18 +138,90 @@ export function emailManagerRejected(data: TravelRequestEmailData & { rejectionR
   `);
 }
 
-export function emailQuotationReady(data: TravelRequestEmailData & { airline: string; totalPrice: string }) {
+interface QuotationEmailFields {
+  locatorCode: string | null;
+  outboundDate: Date | null;
+  outboundOriginCode: string | null;
+  outboundDestinationCode: string | null;
+  outboundDepartureTime: string | null;
+  outboundArrivalTime: string | null;
+  outboundAirline: string | null;
+  outboundFlightNumber: string | null;
+  returnDate: Date | null;
+  returnOriginCode: string | null;
+  returnDestinationCode: string | null;
+  returnDepartureTime: string | null;
+  returnArrivalTime: string | null;
+  returnAirline: string | null;
+  returnFlightNumber: string | null;
+  accommodationType: string | null;
+  accommodationLink: string | null;
+  observations: string | null;
+}
+
+function fmtDate(d: Date | null | undefined) {
+  if (!d) return "—";
+  const date = d instanceof Date ? d : new Date(d);
+  return date.toLocaleDateString("pt-BR");
+}
+
+function flightBlock(label: string, q: QuotationEmailFields, leg: "outbound" | "return") {
+  const date = leg === "outbound" ? q.outboundDate : q.returnDate;
+  const origin = leg === "outbound" ? q.outboundOriginCode : q.returnOriginCode;
+  const dest = leg === "outbound" ? q.outboundDestinationCode : q.returnDestinationCode;
+  const dep = leg === "outbound" ? q.outboundDepartureTime : q.returnDepartureTime;
+  const arr = leg === "outbound" ? q.outboundArrivalTime : q.returnArrivalTime;
+  const airline = leg === "outbound" ? q.outboundAirline : q.returnAirline;
+  const flight = leg === "outbound" ? q.outboundFlightNumber : q.returnFlightNumber;
+
+  if (!date && !origin && !airline) return "";
+
+  return `
+    <h3 style="margin:20px 0 8px;color:#1e3a5f;font-size:15px;">${label}</h3>
+    <table class="info-table">
+      ${date ? `<tr><td>Data</td><td>${fmtDate(date)}</td></tr>` : ""}
+      ${origin || dest ? `<tr><td>Trecho</td><td>${origin ?? "—"} × ${dest ?? "—"}</td></tr>` : ""}
+      ${dep || arr ? `<tr><td>Horário</td><td>${dep ?? "—"} – ${arr ?? "—"}</td></tr>` : ""}
+      ${airline ? `<tr><td>Companhia</td><td>${airline}</td></tr>` : ""}
+      ${flight ? `<tr><td>Voo</td><td>${flight}</td></tr>` : ""}
+    </table>
+  `;
+}
+
+function accommodationBlock(q: QuotationEmailFields) {
+  if (!q.accommodationType) return "";
+  if (q.accommodationType === "APTO_SOMUS") {
+    return `
+      <h3 style="margin:20px 0 8px;color:#1e3a5f;font-size:15px;">Hospedagem</h3>
+      <table class="info-table">
+        <tr><td>Opção</td><td>APTO DA SOMUS</td></tr>
+      </table>
+    `;
+  }
+  return `
+    <h3 style="margin:20px 0 8px;color:#1e3a5f;font-size:15px;">Hospedagem</h3>
+    <table class="info-table">
+      <tr><td>Opção</td><td>Reserva externa</td></tr>
+      ${q.accommodationLink ? `<tr><td>Link/Detalhes</td><td><a href="${q.accommodationLink}">${q.accommodationLink}</a></td></tr>` : ""}
+    </table>
+  `;
+}
+
+export function emailQuotationReady(data: TravelRequestEmailData & { quotation: QuotationEmailFields; totalPrice: string }) {
+  const q = data.quotation;
   return baseTemplate(`
     <h2>Cotação de passagem disponível</h2>
     <p>A área financeira realizou a cotação da sua viagem. Acesse o sistema para aprovar ou recusar.</p>
     <table class="info-table">
       <tr><td>Destino</td><td>${data.destination}</td></tr>
-      <tr><td>Data de ida</td><td>${data.departureDate}</td></tr>
-      <tr><td>Data de volta</td><td>${data.returnDate}</td></tr>
-      <tr><td>Companhia aérea</td><td>${data.airline}</td></tr>
-      <tr><td>Valor total</td><td>${data.totalPrice}</td></tr>
+      ${q.locatorCode ? `<tr><td>Código localizador</td><td><strong>${q.locatorCode}</strong></td></tr>` : ""}
+      <tr><td>Valor total</td><td><strong>${data.totalPrice}</strong></td></tr>
     </table>
-    <a href="${data.requestUrl}" class="btn">Ver cotação</a>
+    ${flightBlock("Voo de ida", q, "outbound")}
+    ${flightBlock("Voo de volta", q, "return")}
+    ${accommodationBlock(q)}
+    ${q.observations ? `<p style="margin-top:16px;"><strong>Observações:</strong> ${q.observations}</p>` : ""}
+    <a href="${data.requestUrl}" class="btn">Ver cotação completa</a>
   `);
 }
 

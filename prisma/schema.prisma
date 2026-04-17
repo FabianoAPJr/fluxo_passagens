@@ -115,15 +115,38 @@ enum RequestStatus {
 }
 
 model Quotation {
-  id             String  @id @default(cuid())
-  requestId      String  @unique
-  financialId    String
-  outboundFlight String
-  returnFlight   String?
-  airline        String
-  totalPrice     Float
-  currency       String  @default("BRL")
-  observations   String? @db.Text
+  id            String  @id @default(cuid())
+  requestId     String  @unique
+  financialId   String
+
+  locatorCode   String?
+
+  // Voo de ida
+  outboundDate            DateTime?
+  outboundOriginCode      String?
+  outboundDestinationCode String?
+  outboundDepartureTime   String?
+  outboundArrivalTime     String?
+  outboundAirline         String?
+  outboundFlightNumber    String?
+
+  // Voo de volta (opcional)
+  returnDate              DateTime?
+  returnOriginCode        String?
+  returnDestinationCode   String?
+  returnDepartureTime     String?
+  returnArrivalTime       String?
+  returnAirline           String?
+  returnFlightNumber      String?
+
+  totalPrice    Float
+  currency      String  @default("BRL")
+
+  // Hospedagem
+  accommodationType String? // "APTO_SOMUS" | "EXTERNAL" | null
+  accommodationLink String? @db.Text
+
+  observations  String? @db.Text
 
   request   TravelRequest @relation(fields: [requestId], references: [id])
   financial User          @relation(fields: [financialId], references: [id])

@@ -136,35 +136,136 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           <CardHeader>
             <CardTitle className="text-base">Cotação de passagem</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-xs text-gray-500">Companhia aérea</p>
-                <p className="font-medium">{request.quotation.airline}</p>
-              </div>
+              {request.quotation.locatorCode && (
+                <div>
+                  <p className="text-xs text-gray-500">Código localizador</p>
+                  <p className="font-bold text-[#1e3a5f]">{request.quotation.locatorCode}</p>
+                </div>
+              )}
               <div>
                 <p className="text-xs text-gray-500">Valor total</p>
                 <p className="font-bold text-lg text-[#1e3a5f]">
                   {new Intl.NumberFormat("pt-BR", { style: "currency", currency: request.quotation.currency }).format(request.quotation.totalPrice)}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-gray-500">Voo de ida</p>
-                <p className="font-medium">{request.quotation.outboundFlight}</p>
-              </div>
-              {request.quotation.returnFlight && (
-                <div>
-                  <p className="text-xs text-gray-500">Voo de volta</p>
-                  <p className="font-medium">{request.quotation.returnFlight}</p>
-                </div>
-              )}
             </div>
+
+            {(request.quotation.outboundDate || request.quotation.outboundAirline) && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm font-semibold text-[#1e3a5f] mb-2">Voo de ida</p>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    {request.quotation.outboundDate && (
+                      <div>
+                        <p className="text-xs text-gray-500">Data</p>
+                        <p className="font-medium">{format(new Date(request.quotation.outboundDate), "dd/MM/yyyy", { locale: ptBR })}</p>
+                      </div>
+                    )}
+                    {(request.quotation.outboundOriginCode || request.quotation.outboundDestinationCode) && (
+                      <div>
+                        <p className="text-xs text-gray-500">Trecho</p>
+                        <p className="font-medium">{request.quotation.outboundOriginCode ?? "—"} × {request.quotation.outboundDestinationCode ?? "—"}</p>
+                      </div>
+                    )}
+                    {(request.quotation.outboundDepartureTime || request.quotation.outboundArrivalTime) && (
+                      <div>
+                        <p className="text-xs text-gray-500">Horário</p>
+                        <p className="font-medium">{request.quotation.outboundDepartureTime ?? "—"} – {request.quotation.outboundArrivalTime ?? "—"}</p>
+                      </div>
+                    )}
+                    {request.quotation.outboundAirline && (
+                      <div>
+                        <p className="text-xs text-gray-500">Companhia</p>
+                        <p className="font-medium">{request.quotation.outboundAirline}</p>
+                      </div>
+                    )}
+                    {request.quotation.outboundFlightNumber && (
+                      <div>
+                        <p className="text-xs text-gray-500">Voo</p>
+                        <p className="font-medium">{request.quotation.outboundFlightNumber}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {(request.quotation.returnDate || request.quotation.returnAirline) && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm font-semibold text-[#1e3a5f] mb-2">Voo de volta</p>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    {request.quotation.returnDate && (
+                      <div>
+                        <p className="text-xs text-gray-500">Data</p>
+                        <p className="font-medium">{format(new Date(request.quotation.returnDate), "dd/MM/yyyy", { locale: ptBR })}</p>
+                      </div>
+                    )}
+                    {(request.quotation.returnOriginCode || request.quotation.returnDestinationCode) && (
+                      <div>
+                        <p className="text-xs text-gray-500">Trecho</p>
+                        <p className="font-medium">{request.quotation.returnOriginCode ?? "—"} × {request.quotation.returnDestinationCode ?? "—"}</p>
+                      </div>
+                    )}
+                    {(request.quotation.returnDepartureTime || request.quotation.returnArrivalTime) && (
+                      <div>
+                        <p className="text-xs text-gray-500">Horário</p>
+                        <p className="font-medium">{request.quotation.returnDepartureTime ?? "—"} – {request.quotation.returnArrivalTime ?? "—"}</p>
+                      </div>
+                    )}
+                    {request.quotation.returnAirline && (
+                      <div>
+                        <p className="text-xs text-gray-500">Companhia</p>
+                        <p className="font-medium">{request.quotation.returnAirline}</p>
+                      </div>
+                    )}
+                    {request.quotation.returnFlightNumber && (
+                      <div>
+                        <p className="text-xs text-gray-500">Voo</p>
+                        <p className="font-medium">{request.quotation.returnFlightNumber}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {request.quotation.accommodationType && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm font-semibold text-[#1e3a5f] mb-2">Hospedagem</p>
+                  {request.quotation.accommodationType === "APTO_SOMUS" ? (
+                    <p className="text-sm font-medium">APTO da SOMUS</p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium mb-1">Reserva externa</p>
+                      {request.quotation.accommodationLink && (
+                        <a
+                          href={request.quotation.accommodationLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm text-[#2d5fa6] hover:underline break-all"
+                        >
+                          {request.quotation.accommodationLink}
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+
             {request.quotation.observations && (
               <>
                 <Separator />
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Observações</p>
-                  <p className="text-sm">{request.quotation.observations}</p>
+                  <p className="text-sm whitespace-pre-line">{request.quotation.observations}</p>
                 </div>
               </>
             )}

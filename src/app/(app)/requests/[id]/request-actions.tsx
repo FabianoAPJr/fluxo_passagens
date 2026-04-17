@@ -30,13 +30,28 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [showQuotationForm, setShowQuotationForm] = useState(false);
   const [quotation, setQuotation] = useState({
-    outboundFlight: "",
-    returnFlight: "",
-    airline: "",
+    locatorCode: "",
+    outboundDate: "",
+    outboundOriginCode: "",
+    outboundDestinationCode: "",
+    outboundDepartureTime: "",
+    outboundArrivalTime: "",
+    outboundAirline: "",
+    outboundFlightNumber: "",
+    returnDate: "",
+    returnOriginCode: "",
+    returnDestinationCode: "",
+    returnDepartureTime: "",
+    returnArrivalTime: "",
+    returnAirline: "",
+    returnFlightNumber: "",
     totalPrice: "",
     currency: "BRL",
+    accommodationType: "" as "" | "APTO_SOMUS" | "EXTERNAL",
+    accommodationLink: "",
     observations: "",
   });
+  const setQ = (patch: Partial<typeof quotation>) => setQuotation((s) => ({ ...s, ...patch }));
 
   const isManager = (currentRole === "GESTOR" || currentRole === "MASTER") && request.managerId === currentUserId;
   const isManager2 = (currentRole === "GESTOR" || currentRole === "MASTER") && request.manager2Id === currentUserId;
@@ -74,16 +89,16 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
   }
 
   function handleQuotation() {
-    if (!quotation.outboundFlight || !quotation.airline || !quotation.totalPrice) {
-      toast.error("Preencha todos os campos obrigatórios.");
+    if (!quotation.outboundAirline || !quotation.totalPrice) {
+      toast.error("Preencha pelo menos companhia da ida e valor total.");
       return;
     }
-    doAction("submit_quotation", {
-      quotation: {
-        ...quotation,
-        totalPrice: parseFloat(quotation.totalPrice),
-      },
-    });
+    const payload: any = {
+      ...quotation,
+      totalPrice: parseFloat(quotation.totalPrice),
+    };
+    if (!payload.accommodationType) delete payload.accommodationType;
+    doAction("submit_quotation", { quotation: payload });
   }
 
   // ─── Manager actions ────────────────────────────────────────────
@@ -216,14 +231,14 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
             Inserir cotação
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Companhia aérea *</Label>
+              <Label>Código localizador</Label>
               <Input
-                placeholder="Ex: LATAM, Gol, Azul"
-                value={quotation.airline}
-                onChange={(e) => setQuotation({ ...quotation, airline: e.target.value })}
+                placeholder="Ex: PS515R"
+                value={quotation.locatorCode}
+                onChange={(e) => setQ({ locatorCode: e.target.value.toUpperCase() })}
               />
             </div>
             <div className="space-y-1">
@@ -234,37 +249,132 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
                 min="0"
                 step="0.01"
                 value={quotation.totalPrice}
-                onChange={(e) => setQuotation({ ...quotation, totalPrice: e.target.value })}
+                onChange={(e) => setQ({ totalPrice: e.target.value })}
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label>Voo de ida *</Label>
-              <Input
-                placeholder="Ex: LA3040 - 08:00 → 10:20"
-                value={quotation.outboundFlight}
-                onChange={(e) => setQuotation({ ...quotation, outboundFlight: e.target.value })}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Voo de volta</Label>
-              <Input
-                placeholder="Ex: LA3041 - 19:00 → 21:30"
-                value={quotation.returnFlight}
-                onChange={(e) => setQuotation({ ...quotation, returnFlight: e.target.value })}
-              />
+
+          <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+            <p className="text-sm font-semibold text-[#1e3a5f]">Voo de ida *</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label>Data</Label>
+                <Input type="date" value={quotation.outboundDate} onChange={(e) => setQ({ outboundDate: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Origem</Label>
+                <Input placeholder="SDU" maxLength={4} value={quotation.outboundOriginCode} onChange={(e) => setQ({ outboundOriginCode: e.target.value.toUpperCase() })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Destino</Label>
+                <Input placeholder="CGH" maxLength={4} value={quotation.outboundDestinationCode} onChange={(e) => setQ({ outboundDestinationCode: e.target.value.toUpperCase() })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Saída</Label>
+                <Input type="time" value={quotation.outboundDepartureTime} onChange={(e) => setQ({ outboundDepartureTime: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Chegada</Label>
+                <Input type="time" value={quotation.outboundArrivalTime} onChange={(e) => setQ({ outboundArrivalTime: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Companhia *</Label>
+                <Input placeholder="AZUL" value={quotation.outboundAirline} onChange={(e) => setQ({ outboundAirline: e.target.value.toUpperCase() })} />
+              </div>
+              <div className="space-y-1 col-span-3">
+                <Label>Número do voo</Label>
+                <Input placeholder="4664" value={quotation.outboundFlightNumber} onChange={(e) => setQ({ outboundFlightNumber: e.target.value })} />
+              </div>
             </div>
           </div>
+
+          <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+            <p className="text-sm font-semibold text-[#1e3a5f]">Voo de volta <span className="text-xs font-normal text-gray-400">(opcional)</span></p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label>Data</Label>
+                <Input type="date" value={quotation.returnDate} onChange={(e) => setQ({ returnDate: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Origem</Label>
+                <Input placeholder="CGH" maxLength={4} value={quotation.returnOriginCode} onChange={(e) => setQ({ returnOriginCode: e.target.value.toUpperCase() })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Destino</Label>
+                <Input placeholder="SDU" maxLength={4} value={quotation.returnDestinationCode} onChange={(e) => setQ({ returnDestinationCode: e.target.value.toUpperCase() })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Saída</Label>
+                <Input type="time" value={quotation.returnDepartureTime} onChange={(e) => setQ({ returnDepartureTime: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Chegada</Label>
+                <Input type="time" value={quotation.returnArrivalTime} onChange={(e) => setQ({ returnArrivalTime: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Companhia</Label>
+                <Input placeholder="AZUL" value={quotation.returnAirline} onChange={(e) => setQ({ returnAirline: e.target.value.toUpperCase() })} />
+              </div>
+              <div className="space-y-1 col-span-3">
+                <Label>Número do voo</Label>
+                <Input placeholder="6406" value={quotation.returnFlightNumber} onChange={(e) => setQ({ returnFlightNumber: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+            <p className="text-sm font-semibold text-[#1e3a5f]">Hospedagem</p>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="radio"
+                  name="accommodationType"
+                  checked={quotation.accommodationType === "APTO_SOMUS"}
+                  onChange={() => setQ({ accommodationType: "APTO_SOMUS", accommodationLink: "" })}
+                />
+                APTO da SOMUS
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="radio"
+                  name="accommodationType"
+                  checked={quotation.accommodationType === "EXTERNAL"}
+                  onChange={() => setQ({ accommodationType: "EXTERNAL" })}
+                />
+                Reserva externa (Airbnb, Booking, hotel, etc.)
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="radio"
+                  name="accommodationType"
+                  checked={quotation.accommodationType === ""}
+                  onChange={() => setQ({ accommodationType: "", accommodationLink: "" })}
+                />
+                Não se aplica
+              </label>
+            </div>
+            {quotation.accommodationType === "EXTERNAL" && (
+              <div className="space-y-1">
+                <Label>Link ou detalhes da reserva</Label>
+                <Input
+                  placeholder="https://..."
+                  value={quotation.accommodationLink}
+                  onChange={(e) => setQ({ accommodationLink: e.target.value })}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="space-y-1">
             <Label>Observações</Label>
             <Textarea
-              placeholder="Bagagem incluída, escalas, condições de reembolso..."
+              placeholder="Ex: O check-in estará disponível 2 dias antes do embarque. Bagagem incluída. Etc."
               value={quotation.observations}
-              onChange={(e) => setQuotation({ ...quotation, observations: e.target.value })}
+              onChange={(e) => setQ({ observations: e.target.value })}
               rows={3}
             />
           </div>
+
           <Button
             onClick={handleQuotation}
             disabled={loading}

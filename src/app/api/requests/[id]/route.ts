@@ -20,11 +20,25 @@ const actionSchema = z.object({
   ]),
   rejectionReason: z.string().optional(),
   quotation: z.object({
-    outboundFlight: z.string().min(1),
-    returnFlight: z.string().optional(),
-    airline: z.string().min(1),
+    locatorCode: z.string().optional(),
+    outboundDate: z.string().optional(),
+    outboundOriginCode: z.string().optional(),
+    outboundDestinationCode: z.string().optional(),
+    outboundDepartureTime: z.string().optional(),
+    outboundArrivalTime: z.string().optional(),
+    outboundAirline: z.string().optional(),
+    outboundFlightNumber: z.string().optional(),
+    returnDate: z.string().optional(),
+    returnOriginCode: z.string().optional(),
+    returnDestinationCode: z.string().optional(),
+    returnDepartureTime: z.string().optional(),
+    returnArrivalTime: z.string().optional(),
+    returnAirline: z.string().optional(),
+    returnFlightNumber: z.string().optional(),
     totalPrice: z.number().positive(),
     currency: z.string().default("BRL"),
+    accommodationType: z.enum(["APTO_SOMUS", "EXTERNAL"]).nullable().optional(),
+    accommodationLink: z.string().optional(),
     observations: z.string().optional(),
   }).optional(),
 });
@@ -187,10 +201,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (request.status !== "PENDING_QUOTATION") return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     if (!quotation) return NextResponse.json({ error: "Cotação obrigatória" }, { status: 400 });
 
-    await prisma.quotation.upsert({
+    const quotationData = {
+      ...quotation,
+      outboundDate: quotation.outboundDate ? new Date(quotation.outboundDate) : null,
+      returnDate: quotation.returnDate ? new Date(quotation.returnDate) : null,
+    };
+
+    const savedQuotation = await prisma.quotation.upsert({
       where: { requestId: id },
-      create: { requestId: id, financialId: userId, ...quotation },
-      update: { financialId: userId, ...quotation },
+      create: { request: { connect: { id } }, financial: { connect: { id: userId } }, ...quotationData },
+      update: { financial: { connect: { id: userId } }, ...quotationData },
     });
 
     updated = await prisma.travelRequest.update({
@@ -199,7 +219,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: quotation.currency }).format(quotation.totalPrice);
-    await notifyUser(request.requester, `[SOMUS-Travel] Cotação disponível – ${request.destination}`, emailQuotationReady({ ...emailData, airline: quotation.airline, totalPrice: price }));
+    await notifyUser(
+      request.requester,
+      `[SOMUS-Travel] Cotação disponível – ${request.destination}`,
+      emailQuotationReady({ ...emailData, quotation: savedQuotation, totalPrice: price }),
+    );
   }
 
   else if (action === "approve_traveler") {
@@ -212,7 +236,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       include: { quotation: true },
     });
 
-    const airline = (updated as any).quotation?.airline ?? "N/A";
+    const airline = (updated as any).quotation?.outboundAirline ?? "N/A";
     await notifyUser(request.manager, `[SOMUS-Travel] Viagem confirmada – ${emailData.requesterName} – ${request.destination}`, emailTravelerApproved({ ...emailData, airline }));
   }
 
