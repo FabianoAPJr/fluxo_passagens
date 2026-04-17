@@ -126,13 +126,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       // Notify 2nd manager
       const manager2 = await prisma.user.findUnique({ where: { id: request.manager2Id! } });
       if (manager2) {
-        await notifyUser(manager2, `Solicitação aguardando 2ª aprovação: ${request.destination}`, emailNewRequest({ ...emailData }));
+        await notifyUser(manager2, `[SOMUS-Travel] 2ª aprovação pendente – ${emailData.requesterName} – ${request.destination}`, emailNewRequest({ ...emailData }));
       }
     } else {
       // Notify financial team
       const financials = await prisma.user.findMany({ where: { role: { in: ["FINANCEIRO", "MASTER"] } } });
       for (const f of financials) {
-        await notifyUser(f, `Cotação necessária: ${request.destination}`, emailManagerApproved({ ...emailData }));
+        await notifyUser(f, `[SOMUS-Travel] Cotação necessária – ${emailData.requesterName} – ${request.destination}`, emailManagerApproved({ ...emailData }));
       }
     }
   }
@@ -148,7 +148,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       data: { status: "REJECTED_BY_MANAGER", rejectionReason },
     });
 
-    await notifyUser(request.requester, `Viagem negada: ${request.destination}`, emailManagerRejected({ ...emailData, rejectionReason }));
+    await notifyUser(request.requester, `[SOMUS-Travel] Viagem negada – ${emailData.requesterName} – ${request.destination}`, emailManagerRejected({ ...emailData, rejectionReason }));
   }
 
   else if (action === "approve_manager_2") {
@@ -164,7 +164,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Notify financial team
     const financials = await prisma.user.findMany({ where: { role: { in: ["FINANCEIRO", "MASTER"] } } });
     for (const f of financials) {
-      await notifyUser(f, `Cotação necessária: ${request.destination}`, emailManagerApproved({ ...emailData }));
+      await notifyUser(f, `[SOMUS-Travel] Cotação necessária – ${emailData.requesterName} – ${request.destination}`, emailManagerApproved({ ...emailData }));
     }
   }
 
@@ -179,7 +179,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       data: { status: "REJECTED_BY_MANAGER_2", rejectionReason },
     });
 
-    await notifyUser(request.requester, `Viagem negada pelo 2º gestor: ${request.destination}`, emailManagerRejected({ ...emailData, rejectionReason }));
+    await notifyUser(request.requester, `[SOMUS-Travel] Viagem negada pelo 2º gestor – ${emailData.requesterName} – ${request.destination}`, emailManagerRejected({ ...emailData, rejectionReason }));
   }
 
   else if (action === "submit_quotation") {
@@ -199,7 +199,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: quotation.currency }).format(quotation.totalPrice);
-    await notifyUser(request.requester, `Cotação disponível: ${request.destination}`, emailQuotationReady({ ...emailData, airline: quotation.airline, totalPrice: price }));
+    await notifyUser(request.requester, `[SOMUS-Travel] Cotação disponível – ${request.destination}`, emailQuotationReady({ ...emailData, airline: quotation.airline, totalPrice: price }));
   }
 
   else if (action === "approve_traveler") {
@@ -213,7 +213,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     const airline = (updated as any).quotation?.airline ?? "N/A";
-    await notifyUser(request.manager, `Viagem confirmada: ${request.destination}`, emailTravelerApproved({ ...emailData, airline }));
+    await notifyUser(request.manager, `[SOMUS-Travel] Viagem confirmada – ${emailData.requesterName} – ${request.destination}`, emailTravelerApproved({ ...emailData, airline }));
   }
 
   else if (action === "reject_traveler") {
@@ -228,7 +228,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const financials = await prisma.user.findMany({ where: { role: { in: ["FINANCEIRO", "MASTER"] } } });
     for (const f of financials) {
-      await notifyUser(f, `Cotação recusada: ${request.destination}`, emailTravelerRejected({ ...emailData, rejectionReason }));
+      await notifyUser(f, `[SOMUS-Travel] Cotação recusada – ${emailData.requesterName} – ${request.destination}`, emailTravelerRejected({ ...emailData, rejectionReason }));
     }
   }
 

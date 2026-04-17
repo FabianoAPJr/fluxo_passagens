@@ -94,14 +94,15 @@ export async function POST(req: NextRequest) {
   });
 
   // Notify manager
+  const requesterName = request.requester.name ?? "Colaborador";
   try {
     const to = [manager.email!];
     if (manager.personalEmail) to.push(manager.personalEmail);
     await sendEmail({
       to,
-      subject: `Nova solicitação de viagem: ${destination}`,
+      subject: `[SOMUS-Travel] Aprovação pendente – ${requesterName} – ${destination}`,
       html: emailNewRequest({
-        requesterName: request.requester.name ?? "Colaborador",
+        requesterName,
         destination,
         departureDate: format(new Date(departureDate), "dd/MM/yyyy", { locale: ptBR }),
         returnDate: format(new Date(returnDate), "dd/MM/yyyy", { locale: ptBR }),
