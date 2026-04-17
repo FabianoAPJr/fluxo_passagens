@@ -93,6 +93,7 @@ model TravelRequest {
   reason          String        @db.Text
   status          RequestStatus @default(PENDING_MANAGER)
   rejectionReason String?       @db.Text
+  lastReminderAt  DateTime?
 
   requester User       @relation("RequesterRequests", fields: [requesterId], references: [id])
   manager   User       @relation("ManagerRequests", fields: [managerId], references: [id])

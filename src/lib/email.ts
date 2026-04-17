@@ -263,6 +263,7 @@ const PILL_QUOTATION_READY: StatusPill = { label: "Cotação disponível", bg: "
 const PILL_APPROVED: StatusPill = { label: "Aprovada", bg: GREEN_LIGHT_BG, color: GREEN_LIGHT_TXT, dot: GREEN_LIGHT_TXT };
 const PILL_REJECTED: StatusPill = { label: "Negada", bg: "#F5E1E1", color: "#661a1a", dot: "#a83232" };
 const PILL_REJECTED_TRAVELER: StatusPill = { label: "Cotação recusada", bg: "#F5E1E1", color: "#661a1a", dot: "#a83232" };
+const PILL_REMINDER: StatusPill = { label: "Lembrete", bg: "#F5E8D9", color: "#7a3e06", dot: "#C9952B" };
 
 export interface TravelRequestEmailData {
   requesterName: string;
@@ -431,6 +432,17 @@ export function emailTravelerApproved(data: TravelRequestEmailData & { airline: 
     greeting: `<strong>${data.requesterName}</strong> confirmou a viagem aprovada. Tudo certo para o embarque.`,
     bodyHtml: travelCard(data),
     button: { label: "Ver detalhes", url: data.requestUrl },
+  });
+}
+
+export function emailReminder(data: TravelRequestEmailData & { daysStuck: number; actionNeeded: string }) {
+  return baseTemplate({
+    title: "Lembrete: ação pendente",
+    subtitle: `Parado há ${data.daysStuck} dias`,
+    status: PILL_REMINDER,
+    greeting: `Esta solicitação de viagem está aguardando <strong>${data.actionNeeded}</strong> há ${data.daysStuck} dias. Acesse o sistema para resolvê-la.`,
+    bodyHtml: travelCard(data),
+    button: { label: "Acessar solicitação", url: data.requestUrl },
   });
 }
 
