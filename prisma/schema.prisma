@@ -86,6 +86,7 @@ model TravelRequest {
   requesterId     String
   managerId       String
   manager2Id      String?
+  origin          String?
   destination     String
   departureDate   DateTime
   returnDate      DateTime

@@ -14,6 +14,7 @@ import { Loader2, User as UserIcon, AlertTriangle } from "lucide-react";
 
 const schema = z
   .object({
+    origin: z.string().min(2, "Origem obrigatória"),
     destination: z.string().min(2, "Destino obrigatório"),
     departureDate: z.string().min(1, "Data de ida obrigatória"),
     returnDate: z.string().min(1, "Data de volta obrigatória"),
@@ -73,14 +74,25 @@ export default function NewRequestForm({ manager, manager2 }: NewRequestFormProp
     <Card>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div className="space-y-1">
-            <Label htmlFor="destination">Destino *</Label>
-            <Input
-              id="destination"
-              placeholder="Ex: São Paulo / Congonhas (CGH)"
-              {...register("destination")}
-            />
-            {errors.destination && <p className="text-xs text-red-500">{errors.destination.message}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="origin">Origem *</Label>
+              <Input
+                id="origin"
+                placeholder="Ex: Belo Horizonte"
+                {...register("origin")}
+              />
+              {errors.origin && <p className="text-xs text-red-500">{errors.origin.message}</p>}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="destination">Destino *</Label>
+              <Input
+                id="destination"
+                placeholder="Ex: São Paulo"
+                {...register("destination")}
+              />
+              {errors.destination && <p className="text-xs text-red-500">{errors.destination.message}</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

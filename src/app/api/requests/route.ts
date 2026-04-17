@@ -4,11 +4,10 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { sendEmail, emailNewRequest } from "@/lib/email";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import type { RequestStatus } from "@prisma/client";
 
 const createSchema = z.object({
+  origin: z.string().min(2),
   destination: z.string().min(2),
   departureDate: z.string(),
   returnDate: z.string(),
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { destination, departureDate, returnDate, reason, managerId } = parsed.data;
+  const { origin, destination, departureDate, returnDate, reason, managerId } = parsed.data;
 
   const manager = await prisma.user.findUnique({ where: { id: managerId } });
   if (!manager || !["GESTOR", "MASTER"].includes(manager.role)) {
@@ -81,6 +80,7 @@ export async function POST(req: NextRequest) {
       ...(requester?.manager2Id
         ? { manager2: { connect: { id: requester.manager2Id } } }
         : {}),
+      origin,
       destination,
       departureDate: new Date(departureDate),
       returnDate: new Date(returnDate),
@@ -103,9 +103,10 @@ export async function POST(req: NextRequest) {
       subject: `[SOMUS-Travel] Aprovação pendente – ${requesterName} – ${destination}`,
       html: emailNewRequest({
         requesterName,
+        origin,
         destination,
-        departureDate: format(new Date(departureDate), "dd/MM/yyyy", { locale: ptBR }),
-        returnDate: format(new Date(returnDate), "dd/MM/yyyy", { locale: ptBR }),
+        departureDate: new Date(departureDate),
+        returnDate: new Date(returnDate),
         reason,
         requestUrl: `${process.env.NEXTAUTH_URL}/requests/${request.id}`,
       }),

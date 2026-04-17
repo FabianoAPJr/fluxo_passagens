@@ -4,8 +4,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { sendEmail, emailNewRequest, emailManagerApproved, emailManagerRejected, emailQuotationReady, emailTravelerApproved, emailTravelerRejected } from "@/lib/email";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 const actionSchema = z.object({
   action: z.enum([
@@ -100,13 +98,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id: userId, role } = session.user;
   const baseUrl = process.env.NEXTAUTH_URL!;
   const requestUrl = `${baseUrl}/requests/${id}`;
-  const fmt = (d: Date) => format(d, "dd/MM/yyyy", { locale: ptBR });
 
   const emailData = {
     requesterName: request.requester.name ?? "Colaborador",
+    origin: request.origin ?? "—",
     destination: request.destination,
-    departureDate: fmt(request.departureDate),
-    returnDate: fmt(request.returnDate),
+    departureDate: request.departureDate,
+    returnDate: request.returnDate,
     reason: request.reason,
     requestUrl,
   };
@@ -140,7 +138,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       // Notify 2nd manager
       const manager2 = await prisma.user.findUnique({ where: { id: request.manager2Id! } });
       if (manager2) {
-        await notifyUser(manager2, `[SOMUS-Travel] 2ª aprovação pendente – ${emailData.requesterName} – ${request.destination}`, emailNewRequest({ ...emailData }));
+        await notifyUser(manager2, `[SOMUS-Travel] 2ª aprovação pendente – ${emailData.requesterName} – ${request.destination}`, emailNewRequest({ ...emailData, approverRole: "manager2" }));
       }
     } else {
       // Notify financial team

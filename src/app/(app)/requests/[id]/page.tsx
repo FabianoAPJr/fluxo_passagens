@@ -51,7 +51,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           <div>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
               <MapPin size={20} className="text-[#004d33]" />
-              {request.destination}
+              {request.origin ? `${request.origin} → ${request.destination}` : request.destination}
             </h1>
             <p className="text-sm text-gray-400 mt-1">Criado em {fmtShort(request.createdAt)}</p>
           </div>
