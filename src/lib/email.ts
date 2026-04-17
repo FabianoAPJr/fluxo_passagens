@@ -80,8 +80,6 @@ interface BaseProps {
   button: { label: string; url: string };
 }
 
-const iconPlane = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
-
 const iconPlaneInline = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="${GREEN_LIGHT_TXT}" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
 
 function baseTemplate(p: BaseProps) {
@@ -103,19 +101,8 @@ function baseTemplate(p: BaseProps) {
 <td style="background:${GREEN_DARK};padding:28px 40px 24px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
-<td valign="middle" width="54" style="padding-right:14px;">
-<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" fillcolor="${GREEN_LIGHT}" stroke="f" style="width:40px;height:40px;" arcsize="25%">
-<w:anchorlock/>
-<center style="color:#ffffff;font-family:Arial,sans-serif;font-size:20px;">&#9992;</center>
-</v:roundrect>
-<![endif]-->
-<!--[if !mso]><!-->
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;"><tr><td width="40" height="40" align="center" valign="middle" style="background:${GREEN_LIGHT};border-radius:10px;">${iconPlane}</td></tr></table>
-<!--<![endif]-->
-</td>
 <td valign="middle">
-<p style="margin:0 0 4px;color:${GREEN_LIGHT};font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;">SOMUS Capital</p>
+<p style="margin:0 0 6px;color:${GREEN_LIGHT};font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;">SOMUS Capital</p>
 <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:500;line-height:1.25;">${p.title}</h1>
 <p style="margin:5px 0 0;color:${GREEN_LIGHT};font-size:14px;">${p.subtitle}</p>
 </td>
