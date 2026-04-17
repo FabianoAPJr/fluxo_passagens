@@ -41,7 +41,7 @@ export default function Header({ user }: { user: HeaderUser }) {
           </div>
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.image ?? undefined} />
-            <AvatarFallback className="bg-[#1e3a5f] text-white text-xs font-bold">
+            <AvatarFallback className="bg-[#004d33] text-white text-xs font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>

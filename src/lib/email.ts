@@ -57,9 +57,9 @@ function baseTemplate(content: string) {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f0e0; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #1e3a5f; color: #fff; padding: 24px 32px; }
+        .header { background: #004d33; color: #fff; padding: 24px 32px; }
         .header h1 { margin: 0; font-size: 20px; }
         .body { padding: 32px; color: #333; }
         .footer { background: #f8f8f8; padding: 16px 32px; font-size: 12px; color: #888; border-top: 1px solid #eee; }
@@ -67,7 +67,7 @@ function baseTemplate(content: string) {
         .badge-pending { background: #fff3cd; color: #856404; }
         .badge-approved { background: #d1e7dd; color: #0f5132; }
         .badge-rejected { background: #f8d7da; color: #842029; }
-        .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #1e3a5f; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #004d33; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold; }
         .info-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
         .info-table td { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
         .info-table td:first-child { font-weight: bold; width: 40%; color: #555; }
@@ -177,7 +177,7 @@ function flightBlock(label: string, q: QuotationEmailFields, leg: "outbound" | "
   if (!date && !origin && !airline) return "";
 
   return `
-    <h3 style="margin:20px 0 8px;color:#1e3a5f;font-size:15px;">${label}</h3>
+    <h3 style="margin:20px 0 8px;color:#004d33;font-size:15px;">${label}</h3>
     <table class="info-table">
       ${date ? `<tr><td>Data</td><td>${fmtDate(date)}</td></tr>` : ""}
       ${origin || dest ? `<tr><td>Trecho</td><td>${origin ?? "—"} × ${dest ?? "—"}</td></tr>` : ""}
@@ -192,14 +192,14 @@ function accommodationBlock(q: QuotationEmailFields) {
   if (!q.accommodationType) return "";
   if (q.accommodationType === "APTO_SOMUS") {
     return `
-      <h3 style="margin:20px 0 8px;color:#1e3a5f;font-size:15px;">Hospedagem</h3>
+      <h3 style="margin:20px 0 8px;color:#004d33;font-size:15px;">Hospedagem</h3>
       <table class="info-table">
         <tr><td>Opção</td><td>APTO DA SOMUS</td></tr>
       </table>
     `;
   }
   return `
-    <h3 style="margin:20px 0 8px;color:#1e3a5f;font-size:15px;">Hospedagem</h3>
+    <h3 style="margin:20px 0 8px;color:#004d33;font-size:15px;">Hospedagem</h3>
     <table class="info-table">
       <tr><td>Opção</td><td>Reserva externa</td></tr>
       ${q.accommodationLink ? `<tr><td>Link/Detalhes</td><td><a href="${q.accommodationLink}">${q.accommodationLink}</a></td></tr>` : ""}
@@ -214,7 +214,7 @@ export function emailQuotationReady(data: TravelRequestEmailData & { quotation: 
     <p>A área financeira realizou a cotação da sua viagem. Acesse o sistema para aprovar ou recusar.</p>
     <table class="info-table">
       <tr><td>Destino</td><td>${data.destination}</td></tr>
-      ${q.locatorCode ? `<tr><td>Código localizador</td><td><strong>${q.locatorCode}</strong></td></tr>` : ""}
+      ${q.locatorCode ? `<tr><td>Código localizador</td><td><strong style="color:#967439;letter-spacing:1px;">${q.locatorCode}</strong></td></tr>` : ""}
       <tr><td>Valor total</td><td><strong>${data.totalPrice}</strong></td></tr>
     </table>
     ${flightBlock("Voo de ida", q, "outbound")}

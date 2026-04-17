@@ -103,7 +103,7 @@ export default async function DashboardPage() {
               <Plane size={16} />
               Últimas solicitações
             </CardTitle>
-            <Link href="/requests" className="text-sm text-[#1e3a5f] hover:underline font-medium">
+            <Link href="/requests" className="text-sm text-[#004d33] hover:underline font-medium">
               Ver todas
             </Link>
           </div>

@@ -255,7 +255,7 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
           </div>
 
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">
-            <p className="text-sm font-semibold text-[#1e3a5f]">Voo de ida *</p>
+            <p className="text-sm font-semibold text-[#004d33]">Voo de ida *</p>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label>Data</Label>
@@ -289,7 +289,7 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
           </div>
 
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">
-            <p className="text-sm font-semibold text-[#1e3a5f]">Voo de volta <span className="text-xs font-normal text-gray-400">(opcional)</span></p>
+            <p className="text-sm font-semibold text-[#004d33]">Voo de volta <span className="text-xs font-normal text-gray-400">(opcional)</span></p>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1">
                 <Label>Data</Label>
@@ -323,7 +323,7 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
           </div>
 
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">
-            <p className="text-sm font-semibold text-[#1e3a5f]">Hospedagem</p>
+            <p className="text-sm font-semibold text-[#004d33]">Hospedagem</p>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
@@ -378,7 +378,7 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
           <Button
             onClick={handleQuotation}
             disabled={loading}
-            className="w-full bg-[#1e3a5f] hover:bg-[#2d5fa6]"
+            className="w-full bg-[#004d33] hover:bg-[#49624e]"
           >
             {loading ? <Loader2 size={16} className="animate-spin mr-2" /> : <DollarSign size={16} className="mr-2" />}
             Enviar cotação ao colaborador

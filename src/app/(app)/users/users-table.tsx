@@ -176,7 +176,7 @@ export default function UsersTable({
                         size="sm"
                         onClick={() => saveEdit(user.id)}
                         disabled={saving === user.id}
-                        className="h-7 bg-[#1e3a5f] hover:bg-[#2d5fa6]"
+                        className="h-7 bg-[#004d33] hover:bg-[#49624e]"
                       >
                         {saving === user.id ? (
                           <Loader2 size={12} className="animate-spin" />

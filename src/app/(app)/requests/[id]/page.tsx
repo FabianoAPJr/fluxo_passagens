@@ -44,13 +44,13 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <Link href="/requests" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#1e3a5f] mb-4">
+        <Link href="/requests" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#004d33] mb-4">
           <ArrowLeft size={14} /> Voltar para solicitações
         </Link>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <MapPin size={20} className="text-[#1e3a5f]" />
+              <MapPin size={20} className="text-[#004d33]" />
               {request.destination}
             </h1>
             <p className="text-sm text-gray-400 mt-1">Criado em {fmtShort(request.createdAt)}</p>
@@ -141,12 +141,12 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               {request.quotation.locatorCode && (
                 <div>
                   <p className="text-xs text-gray-500">Código localizador</p>
-                  <p className="font-bold text-[#1e3a5f]">{request.quotation.locatorCode}</p>
+                  <p className="font-bold text-[#967439] text-lg tracking-wider">{request.quotation.locatorCode}</p>
                 </div>
               )}
               <div>
                 <p className="text-xs text-gray-500">Valor total</p>
-                <p className="font-bold text-lg text-[#1e3a5f]">
+                <p className="font-bold text-lg text-[#004d33]">
                   {new Intl.NumberFormat("pt-BR", { style: "currency", currency: request.quotation.currency }).format(request.quotation.totalPrice)}
                 </p>
               </div>
@@ -156,7 +156,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm font-semibold text-[#1e3a5f] mb-2">Voo de ida</p>
+                  <p className="text-sm font-semibold text-[#004d33] mb-2">Voo de ida</p>
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     {request.quotation.outboundDate && (
                       <div>
@@ -197,7 +197,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm font-semibold text-[#1e3a5f] mb-2">Voo de volta</p>
+                  <p className="text-sm font-semibold text-[#004d33] mb-2">Voo de volta</p>
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     {request.quotation.returnDate && (
                       <div>
@@ -238,7 +238,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm font-semibold text-[#1e3a5f] mb-2">Hospedagem</p>
+                  <p className="text-sm font-semibold text-[#004d33] mb-2">Hospedagem</p>
                   {request.quotation.accommodationType === "APTO_SOMUS" ? (
                     <p className="text-sm font-medium">APTO da SOMUS</p>
                   ) : (
@@ -249,7 +249,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                           href={request.quotation.accommodationLink}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-sm text-[#2d5fa6] hover:underline break-all"
+                          className="text-sm text-[#49624e] hover:underline break-all"
                         >
                           {request.quotation.accommodationLink}
                         </a>

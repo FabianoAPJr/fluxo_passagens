@@ -46,7 +46,7 @@ export default async function RequestsPage() {
         {["COLABORADOR", "GESTOR", "MASTER"].includes(role) && (
           <Link
             href="/requests/new"
-            className={cn(buttonVariants(), "bg-[#1e3a5f] hover:bg-[#2d5fa6] text-white")}
+            className={cn(buttonVariants(), "bg-[#004d33] hover:bg-[#49624e] text-white")}
           >
             <PlusCircle size={16} className="mr-2" />
             Nova solicitação
@@ -79,7 +79,7 @@ export default async function RequestsPage() {
                   {requests.map((req) => (
                     <tr key={req.id} className="border-b hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
-                        <Link href={`/requests/${req.id}`} className="font-medium text-[#1e3a5f] hover:underline">
+                        <Link href={`/requests/${req.id}`} className="font-medium text-[#004d33] hover:underline">
                           {req.destination}
                         </Link>
                       </td>

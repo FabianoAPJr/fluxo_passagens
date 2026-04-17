@@ -9,10 +9,10 @@ export default async function LoginPage() {
   if (session) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] to-[#2d5fa6]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#004d33] to-[#49624e]">
       <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md text-center">
         <div className="flex justify-center mb-6">
-          <div className="bg-[#1e3a5f] text-white p-4 rounded-full">
+          <div className="bg-[#004d33] text-white p-4 rounded-full">
             <Plane size={36} />
           </div>
         </div>

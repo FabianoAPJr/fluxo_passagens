@@ -52,7 +52,7 @@ export default function Sidebar({ role }: { role: Role }) {
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
 
   return (
-    <aside className="w-60 bg-[#1e3a5f] text-white flex flex-col shrink-0">
+    <aside className="w-60 bg-[#004d33] text-white flex flex-col shrink-0">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
         <div className="bg-white/10 p-2 rounded-lg">
           <Plane size={20} />

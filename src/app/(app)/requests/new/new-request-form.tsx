@@ -145,7 +145,7 @@ export default function NewRequestForm({ manager, manager2 }: NewRequestFormProp
             <Button
               type="submit"
               disabled={isSubmitting || !hasManager}
-              className="flex-1 bg-[#1e3a5f] hover:bg-[#2d5fa6]"
+              className="flex-1 bg-[#004d33] hover:bg-[#49624e]"
             >
               {isSubmitting ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
               Enviar ao gestor

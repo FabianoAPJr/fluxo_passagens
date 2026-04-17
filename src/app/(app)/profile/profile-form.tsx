@@ -46,7 +46,7 @@ export default function ProfileForm({ currentPersonalEmail }: { currentPersonalE
       <Button
         onClick={handleSave}
         disabled={loading}
-        className="bg-[#1e3a5f] hover:bg-[#2d5fa6]"
+        className="bg-[#004d33] hover:bg-[#49624e]"
       >
         {loading ? <Loader2 size={16} className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
         Salvar

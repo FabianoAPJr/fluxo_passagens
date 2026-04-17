@@ -7,7 +7,7 @@ export default function LoginButton() {
   return (
     <Button
       onClick={() => signIn("azure-ad", { callbackUrl: "/dashboard" })}
-      className="w-full bg-[#1e3a5f] hover:bg-[#2d5fa6] text-white py-3 text-base"
+      className="w-full bg-[#004d33] hover:bg-[#49624e] text-white py-3 text-base"
       size="lg"
     >
       <svg className="w-5 h-5 mr-2" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
