@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     role === "MASTER"
       ? {}
       : role === "GESTOR"
-      ? { managerId: userId }
+      ? { OR: [{ managerId: userId }, { manager2Id: userId }, { requesterId: userId }] }
       : role === "FINANCEIRO"
       ? { status: { in: ["PENDING_QUOTATION", "PENDING_TRAVELER", "APPROVED", "REJECTED_BY_TRAVELER"] as RequestStatus[] } }
       : { requesterId: userId };

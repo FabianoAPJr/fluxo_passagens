@@ -21,7 +21,7 @@ export default async function RequestsPage() {
     role === "MASTER"
       ? {}
       : role === "GESTOR"
-      ? { OR: [{ managerId: userId }, { manager2Id: userId }] }
+      ? { OR: [{ managerId: userId }, { manager2Id: userId }, { requesterId: userId }] }
       : role === "FINANCEIRO"
       ? { status: { in: ["PENDING_QUOTATION", "PENDING_TRAVELER", "APPROVED", "REJECTED_BY_TRAVELER"] as RequestStatus[] } }
       : { requesterId: userId };
@@ -43,7 +43,7 @@ export default async function RequestsPage() {
           <h1 className="text-2xl font-bold text-gray-800">Solicitações</h1>
           <p className="text-sm text-gray-500 mt-1">{requests.length} solicitação(ões) encontrada(s)</p>
         </div>
-        {["COLABORADOR", "MASTER"].includes(role) && (
+        {["COLABORADOR", "GESTOR", "MASTER"].includes(role) && (
           <Link
             href="/requests/new"
             className={cn(buttonVariants(), "bg-[#1e3a5f] hover:bg-[#2d5fa6] text-white")}

@@ -24,7 +24,7 @@ const navItems: NavItem[] = [
     href: "/requests/new",
     label: "Nova solicitação",
     icon: <PlusCircle size={18} />,
-    roles: ["COLABORADOR", "MASTER"],
+    roles: ["COLABORADOR", "GESTOR", "MASTER"],
   },
   {
     href: "/requests",
