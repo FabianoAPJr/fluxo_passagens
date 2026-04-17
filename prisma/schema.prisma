@@ -140,7 +140,7 @@ model Quotation {
   returnAirline           String?
   returnFlightNumber      String?
 
-  totalPrice    Float
+  totalPrice    Float?
   currency      String  @default("BRL")
 
   // Hospedagem

@@ -45,7 +45,6 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
     returnArrivalTime: "",
     returnAirline: "",
     returnFlightNumber: "",
-    totalPrice: "",
     currency: "BRL",
     accommodationType: "" as "" | "APTO_SOMUS" | "EXTERNAL",
     accommodationLink: "",
@@ -89,14 +88,11 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
   }
 
   function handleQuotation() {
-    if (!quotation.outboundAirline || !quotation.totalPrice) {
-      toast.error("Preencha pelo menos companhia da ida e valor total.");
+    if (!quotation.outboundAirline) {
+      toast.error("Informe pelo menos a companhia da ida.");
       return;
     }
-    const payload: any = {
-      ...quotation,
-      totalPrice: parseFloat(quotation.totalPrice),
-    };
+    const payload: any = { ...quotation };
     if (!payload.accommodationType) delete payload.accommodationType;
     doAction("submit_quotation", { quotation: payload });
   }
@@ -232,26 +228,13 @@ export default function RequestActions({ request, currentUserId, currentRole }: 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label>Código localizador</Label>
-              <Input
-                placeholder="Ex: PS515R"
-                value={quotation.locatorCode}
-                onChange={(e) => setQ({ locatorCode: e.target.value.toUpperCase() })}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Valor total (R$) *</Label>
-              <Input
-                type="number"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                value={quotation.totalPrice}
-                onChange={(e) => setQ({ totalPrice: e.target.value })}
-              />
-            </div>
+          <div className="space-y-1">
+            <Label>Código localizador</Label>
+            <Input
+              placeholder="Ex: PS515R"
+              value={quotation.locatorCode}
+              onChange={(e) => setQ({ locatorCode: e.target.value.toUpperCase() })}
+            />
           </div>
 
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">

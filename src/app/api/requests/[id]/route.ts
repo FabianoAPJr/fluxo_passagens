@@ -33,7 +33,6 @@ const actionSchema = z.object({
     returnArrivalTime: z.string().optional(),
     returnAirline: z.string().optional(),
     returnFlightNumber: z.string().optional(),
-    totalPrice: z.number().positive(),
     currency: z.string().default("BRL"),
     accommodationType: z.enum(["APTO_SOMUS", "EXTERNAL"]).nullable().optional(),
     accommodationLink: z.string().optional(),
@@ -216,11 +215,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       data: { status: "PENDING_TRAVELER" },
     });
 
-    const price = new Intl.NumberFormat("pt-BR", { style: "currency", currency: quotation.currency }).format(quotation.totalPrice);
     await notifyUser(
       request.requester,
       `[SOMUS-Travel] Cotação disponível – ${request.destination}`,
-      emailQuotationReady({ ...emailData, quotation: savedQuotation, totalPrice: price }),
+      emailQuotationReady({ ...emailData, quotation: savedQuotation }),
     );
   }
 

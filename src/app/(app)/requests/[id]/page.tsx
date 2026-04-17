@@ -137,20 +137,12 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             <CardTitle className="text-base">Cotação de passagem</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {request.quotation.locatorCode && (
-                <div>
-                  <p className="text-xs text-gray-500">Código localizador</p>
-                  <p className="font-bold text-[#967439] text-lg tracking-wider">{request.quotation.locatorCode}</p>
-                </div>
-              )}
+            {request.quotation.locatorCode && (
               <div>
-                <p className="text-xs text-gray-500">Valor total</p>
-                <p className="font-bold text-lg text-[#004d33]">
-                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: request.quotation.currency }).format(request.quotation.totalPrice)}
-                </p>
+                <p className="text-xs text-gray-500">Código localizador</p>
+                <p className="font-bold text-[#967439] text-lg tracking-wider">{request.quotation.locatorCode}</p>
               </div>
-            </div>
+            )}
 
             {(request.quotation.outboundDate || request.quotation.outboundAirline) && (
               <>

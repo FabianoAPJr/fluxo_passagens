@@ -393,14 +393,13 @@ ${q.accommodationLink ? `<p style="margin:0;font-size:13px;word-break:break-all;
 </td></tr></table>`;
 }
 
-export function emailQuotationReady(data: TravelRequestEmailData & { quotation: QuotationEmailFields; totalPrice: string }) {
+export function emailQuotationReady(data: TravelRequestEmailData & { quotation: QuotationEmailFields }) {
   const q = data.quotation;
   const summary = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BG_CARD};border-radius:10px;">
 <tr><td style="padding:18px 22px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 ${q.locatorCode ? quotationRow("Código localizador", q.locatorCode, true) : ""}
-${quotationRow("Destino", data.destination)}
-${quotationRow("Valor total", `<strong style="font-size:16px;color:${GREEN_DARK};">${data.totalPrice}</strong>`)}
+${quotationRow("Trajeto", `${data.origin} → ${data.destination}`)}
 </table>
 </td></tr>
 </table>`;
