@@ -206,11 +206,17 @@ function travelCard(data: {
   origin: string;
   destination: string;
   departureDate: Date;
+  departureTimeFrom?: string | null;
+  departureTimeTo?: string | null;
   returnDate: Date;
+  returnTimeFrom?: string | null;
+  returnTimeTo?: string | null;
   reason: string;
 }): string {
   const days = durationDays(data.departureDate, data.returnDate);
   const daysLabel = days === 1 ? "1 dia" : `${days} dias`;
+  const depRange = data.departureTimeFrom && data.departureTimeTo ? ` · ${data.departureTimeFrom} às ${data.departureTimeTo}` : "";
+  const retRange = data.returnTimeFrom && data.returnTimeTo ? ` · ${data.returnTimeFrom} às ${data.returnTimeTo}` : "";
 
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BG_CARD};border-radius:10px;">
 
@@ -228,7 +234,7 @@ ${sectionLabel("Trajeto")}
 <td width="60" valign="top" style="font-size:11px;color:${LABEL_GRAY};text-transform:uppercase;letter-spacing:0.5px;font-weight:600;padding-top:2px;">Ida</td>
 <td valign="top">
 <p style="margin:0;font-size:15px;font-weight:500;color:${TEXT_DARK};line-height:1.3;">${data.origin} <span style="color:${GREEN_LIGHT_TXT};">→</span> ${data.destination}</p>
-<p style="margin:3px 0 0;font-size:12px;color:${LABEL_GRAY};">${fmtBR(data.departureDate)}</p>
+<p style="margin:3px 0 0;font-size:12px;color:${LABEL_GRAY};">${fmtBR(data.departureDate)}${depRange}</p>
 </td>
 </tr>
 </table>
@@ -237,7 +243,7 @@ ${sectionLabel("Trajeto")}
 <td width="60" valign="top" style="font-size:11px;color:${LABEL_GRAY};text-transform:uppercase;letter-spacing:0.5px;font-weight:600;padding-top:2px;">Volta</td>
 <td valign="top">
 <p style="margin:0;font-size:15px;font-weight:500;color:${TEXT_DARK};line-height:1.3;">${data.destination} <span style="color:${GREEN_LIGHT_TXT};">→</span> ${data.origin}</p>
-<p style="margin:3px 0 0;font-size:12px;color:${LABEL_GRAY};">${fmtBR(data.returnDate)}</p>
+<p style="margin:3px 0 0;font-size:12px;color:${LABEL_GRAY};">${fmtBR(data.returnDate)}${retRange}</p>
 </td>
 </tr>
 </table>
@@ -270,7 +276,11 @@ export interface TravelRequestEmailData {
   origin: string;
   destination: string;
   departureDate: Date;
+  departureTimeFrom?: string | null;
+  departureTimeTo?: string | null;
   returnDate: Date;
+  returnTimeFrom?: string | null;
+  returnTimeTo?: string | null;
   reason: string;
   requestUrl: string;
 }

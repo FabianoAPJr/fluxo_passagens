@@ -6,11 +6,17 @@ import { z } from "zod";
 import { sendEmail, emailNewRequest } from "@/lib/email";
 import type { RequestStatus } from "@prisma/client";
 
+const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const createSchema = z.object({
   origin: z.string().min(2),
   destination: z.string().min(2),
   departureDate: z.string(),
+  departureTimeFrom: z.string().regex(timeRegex),
+  departureTimeTo: z.string().regex(timeRegex),
   returnDate: z.string(),
+  returnTimeFrom: z.string().regex(timeRegex),
+  returnTimeTo: z.string().regex(timeRegex),
   reason: z.string().min(10),
   managerId: z.string(),
 });
@@ -61,7 +67,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { origin, destination, departureDate, returnDate, reason, managerId } = parsed.data;
+  const {
+    origin,
+    destination,
+    departureDate,
+    departureTimeFrom,
+    departureTimeTo,
+    returnDate,
+    returnTimeFrom,
+    returnTimeTo,
+    reason,
+    managerId,
+  } = parsed.data;
 
   const manager = await prisma.user.findUnique({ where: { id: managerId } });
   if (!manager || !["GESTOR", "MASTER"].includes(manager.role)) {
@@ -83,7 +100,11 @@ export async function POST(req: NextRequest) {
       origin,
       destination,
       departureDate: new Date(departureDate),
+      departureTimeFrom,
+      departureTimeTo,
       returnDate: new Date(returnDate),
+      returnTimeFrom,
+      returnTimeTo,
       reason,
     },
     include: {
@@ -106,7 +127,11 @@ export async function POST(req: NextRequest) {
         origin,
         destination,
         departureDate: new Date(departureDate),
+        departureTimeFrom,
+        departureTimeTo,
         returnDate: new Date(returnDate),
+        returnTimeFrom,
+        returnTimeTo,
         reason,
         requestUrl: `${process.env.NEXTAUTH_URL}/requests/${request.id}`,
       }),

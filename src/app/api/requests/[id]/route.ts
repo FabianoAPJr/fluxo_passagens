@@ -103,7 +103,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     origin: request.origin ?? "—",
     destination: request.destination,
     departureDate: request.departureDate,
+    departureTimeFrom: request.departureTimeFrom,
+    departureTimeTo: request.departureTimeTo,
     returnDate: request.returnDate,
+    returnTimeFrom: request.returnTimeFrom,
+    returnTimeTo: request.returnTimeTo,
     reason: request.reason,
     requestUrl,
   };

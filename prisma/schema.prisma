@@ -89,7 +89,11 @@ model TravelRequest {
   origin          String?
   destination     String
   departureDate   DateTime
+  departureTimeFrom String?
+  departureTimeTo   String?
   returnDate      DateTime
+  returnTimeFrom    String?
+  returnTimeTo      String?
   reason          String        @db.Text
   status          RequestStatus @default(PENDING_MANAGER)
   rejectionReason String?       @db.Text

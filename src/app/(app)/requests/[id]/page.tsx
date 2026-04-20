@@ -70,6 +70,11 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               <div>
                 <p className="text-xs text-gray-500">Data de ida</p>
                 <p className="text-sm font-medium">{fmt(request.departureDate)}</p>
+                {request.departureTimeFrom && request.departureTimeTo && (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Preferência: {request.departureTimeFrom} às {request.departureTimeTo}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-start gap-2">
@@ -77,6 +82,11 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
               <div>
                 <p className="text-xs text-gray-500">Data de volta</p>
                 <p className="text-sm font-medium">{fmt(request.returnDate)}</p>
+                {request.returnTimeFrom && request.returnTimeTo && (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Preferência: {request.returnTimeFrom} às {request.returnTimeTo}
+                  </p>
+                )}
               </div>
             </div>
           </div>
