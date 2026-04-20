@@ -72,7 +72,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                 <p className="text-sm font-medium">{fmt(request.departureDate)}</p>
                 {request.departureTimeFrom && request.departureTimeTo && (
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Preferência: {request.departureTimeFrom} às {request.departureTimeTo}
+                    Embarque preferido entre {request.departureTimeFrom} e {request.departureTimeTo}
                   </p>
                 )}
               </div>
@@ -84,7 +84,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                 <p className="text-sm font-medium">{fmt(request.returnDate)}</p>
                 {request.returnTimeFrom && request.returnTimeTo && (
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Preferência: {request.returnTimeFrom} às {request.returnTimeTo}
+                    Embarque preferido entre {request.returnTimeFrom} e {request.returnTimeTo}
                   </p>
                 )}
               </div>

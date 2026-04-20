@@ -1,6 +1,7 @@
 import { ClientSecretCredential } from "@azure/identity";
 import { Client } from "@microsoft/microsoft-graph-client";
 import { TokenCredentialAuthenticationProvider } from "@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials";
+import { findAirport } from "./airports";
 
 let graphClient: Client | null = null;
 
@@ -46,6 +47,47 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
   await getGraphClient()
     .api(`/users/${encodeURIComponent(sender)}/sendMail`)
     .post(message);
+}
+
+// ─── Calendar ────────────────────────────────────────────────────────────────
+
+export interface TravelCalendarEventParams {
+  userEmail: string;
+  origin: string;
+  destination: string;
+  departureDate: Date;
+  returnDate: Date;
+  reason: string;
+}
+
+export async function createTravelCalendarEvent(params: TravelCalendarEventParams) {
+  const originAirport = findAirport(params.origin);
+  const destAirport = findAirport(params.destination);
+  const originLabel = originAirport ? `${originAirport.city} (${params.origin})` : params.origin;
+  const destLabel = destAirport ? `${destAirport.city} (${params.destination})` : params.destination;
+
+  const startISO = params.departureDate.toISOString().split("T")[0];
+  const endISO = new Date(params.returnDate.getTime() + 86_400_000).toISOString().split("T")[0];
+
+  const event = {
+    subject: `Viagem: ${originLabel} → ${destLabel}`,
+    body: {
+      contentType: "HTML",
+      content: `<p><strong>Período de viagem aprovado.</strong></p>
+<p><strong>Motivo:</strong> ${params.reason}</p>
+<p style="color:#888;font-size:12px;">Evento criado automaticamente pelo Sistema de Passagens Aéreas da Somus Capital.</p>`,
+    },
+    start: { dateTime: `${startISO}T00:00:00`, timeZone: "America/Sao_Paulo" },
+    end: { dateTime: `${endISO}T00:00:00`, timeZone: "America/Sao_Paulo" },
+    isAllDay: true,
+    showAs: "oof",
+    location: { displayName: `${params.origin} → ${params.destination}` },
+    reminderMinutesBeforeStart: 1440,
+  };
+
+  await getGraphClient()
+    .api(`/users/${encodeURIComponent(params.userEmail)}/events`)
+    .post(event);
 }
 
 // ─── Email templates ──────────────────────────────────────────────────────────
@@ -215,8 +257,8 @@ function travelCard(data: {
 }): string {
   const days = durationDays(data.departureDate, data.returnDate);
   const daysLabel = days === 1 ? "1 dia" : `${days} dias`;
-  const depRange = data.departureTimeFrom && data.departureTimeTo ? ` · ${data.departureTimeFrom} às ${data.departureTimeTo}` : "";
-  const retRange = data.returnTimeFrom && data.returnTimeTo ? ` · ${data.returnTimeFrom} às ${data.returnTimeTo}` : "";
+  const depRange = data.departureTimeFrom && data.departureTimeTo ? ` · embarque entre ${data.departureTimeFrom} e ${data.departureTimeTo}` : "";
+  const retRange = data.returnTimeFrom && data.returnTimeTo ? ` · embarque entre ${data.returnTimeFrom} e ${data.returnTimeTo}` : "";
 
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BG_CARD};border-radius:10px;">
 

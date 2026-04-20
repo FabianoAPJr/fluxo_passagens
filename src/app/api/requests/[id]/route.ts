@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { sendEmail, emailNewRequest, emailManagerApproved, emailManagerRejected, emailQuotationReady, emailTravelerApproved, emailTravelerRejected } from "@/lib/email";
+import { sendEmail, emailNewRequest, emailManagerApproved, emailManagerRejected, emailQuotationReady, emailTravelerApproved, emailTravelerRejected, createTravelCalendarEvent } from "@/lib/email";
 
 const actionSchema = z.object({
   action: z.enum([
@@ -238,6 +238,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const airline = (updated as any).quotation?.outboundAirline ?? "N/A";
     await notifyUser(request.manager, `[SOMUS-Travel] Viagem confirmada – ${emailData.requesterName} – ${request.destination}`, emailTravelerApproved({ ...emailData, airline }));
+
+    if (request.requester.email && request.origin) {
+      try {
+        await createTravelCalendarEvent({
+          userEmail: request.requester.email,
+          origin: request.origin,
+          destination: request.destination,
+          departureDate: request.departureDate,
+          returnDate: request.returnDate,
+          reason: request.reason,
+        });
+      } catch (e) {
+        console.error("Calendar event error:", e);
+      }
+    }
   }
 
   else if (action === "reject_traveler") {

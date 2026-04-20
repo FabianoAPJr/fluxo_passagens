@@ -146,12 +146,12 @@ export default function NewRequestForm({ manager, manager2 }: NewRequestFormProp
                 {errors.departureDate && <p className="text-xs text-red-500">{errors.departureDate.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="departureTimeFrom">Horário de</Label>
+                <Label htmlFor="departureTimeFrom">Embarque a partir de</Label>
                 <Input id="departureTimeFrom" type="time" {...register("departureTimeFrom")} />
                 {errors.departureTimeFrom && <p className="text-xs text-red-500">{errors.departureTimeFrom.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="departureTimeTo">Horário até</Label>
+                <Label htmlFor="departureTimeTo">Embarque até</Label>
                 <Input id="departureTimeTo" type="time" {...register("departureTimeTo")} />
                 {errors.departureTimeTo && <p className="text-xs text-red-500">{errors.departureTimeTo.message}</p>}
               </div>
@@ -167,12 +167,12 @@ export default function NewRequestForm({ manager, manager2 }: NewRequestFormProp
                 {errors.returnDate && <p className="text-xs text-red-500">{errors.returnDate.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="returnTimeFrom">Horário de</Label>
+                <Label htmlFor="returnTimeFrom">Embarque a partir de</Label>
                 <Input id="returnTimeFrom" type="time" {...register("returnTimeFrom")} />
                 {errors.returnTimeFrom && <p className="text-xs text-red-500">{errors.returnTimeFrom.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="returnTimeTo">Horário até</Label>
+                <Label htmlFor="returnTimeTo">Embarque até</Label>
                 <Input id="returnTimeTo" type="time" {...register("returnTimeTo")} />
                 {errors.returnTimeTo && <p className="text-xs text-red-500">{errors.returnTimeTo.message}</p>}
               </div>
