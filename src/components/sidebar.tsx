@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Plane, LayoutDashboard, PlusCircle, List, Users, Settings } from "lucide-react";
+import { Plane, LayoutDashboard, PlusCircle, List, Users, Settings, Search } from "lucide-react";
 import type { Role } from "@prisma/client";
 
 interface NavItem {
@@ -30,6 +30,12 @@ const navItems: NavItem[] = [
     href: "/requests",
     label: "Solicitações",
     icon: <List size={18} />,
+    roles: ["MASTER", "GESTOR", "FINANCEIRO", "COLABORADOR"],
+  },
+  {
+    href: "/flight-search",
+    label: "Buscar passagens",
+    icon: <Search size={18} />,
     roles: ["MASTER", "GESTOR", "FINANCEIRO", "COLABORADOR"],
   },
   {
