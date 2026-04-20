@@ -34,6 +34,7 @@ import type {
   TripType,
 } from "@/lib/flight-search/types";
 import { findAirport } from "@/lib/airports";
+import { LAUNCHERS, type LaunchParams } from "@/lib/flight-search/launchers";
 
 interface FormState {
   origin: string;
@@ -143,6 +144,7 @@ export default function FlightSearchClient() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<FlightSearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [launchParams, setLaunchParams] = useState<LaunchParams | null>(null);
 
   const [sortBy, setSortBy] = useState<SortBy>("PRICE");
   const [filterAirlines, setFilterAirlines] = useState<Set<string>>(new Set());
@@ -251,6 +253,14 @@ export default function FlightSearchClient() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setLaunchParams({
+      origin: form.origin,
+      destination: form.destination,
+      departureDate: form.departureDate,
+      returnDate: form.tripType === "ROUND_TRIP" ? form.returnDate : undefined,
+      passengers: form.passengers,
+      cabinClass: form.cabinClass,
+    });
     setFilterAirlines(new Set());
     setFilterStops("ALL");
     setFilterPriceMin("");
@@ -300,17 +310,6 @@ export default function FlightSearchClient() {
       setLoading(false);
     }
   }
-
-  const googleFlightsUrl = useMemo(() => {
-    if (!form.origin || !form.destination || !form.departureDate) return null;
-    const parts = [
-      `Flights from ${form.origin} to ${form.destination} on ${form.departureDate}`,
-    ];
-    if (form.tripType === "ROUND_TRIP" && form.returnDate) {
-      parts.push(`returning ${form.returnDate}`);
-    }
-    return `https://www.google.com/travel/flights?q=${encodeURIComponent(parts.join(" "))}`;
-  }, [form.origin, form.destination, form.departureDate, form.returnDate, form.tripType]);
 
   return (
     <div className="space-y-6">
@@ -521,17 +520,51 @@ export default function FlightSearchClient() {
 
       {result && !loading && (
         <>
+          {launchParams && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ExternalLink size={16} />
+                  Comparar preços reais nos consolidadores
+                </CardTitle>
+                <p className="text-xs text-gray-500 mt-1">
+                  Cada botão abre o site do consolidador já com a sua busca preenchida em uma nova aba.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {LAUNCHERS.map((launcher) => (
+                    <a
+                      key={launcher.id}
+                      href={launcher.buildUrl(launchParams)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group rounded-lg border border-gray-200 p-3 hover:border-[#004d33] hover:shadow-sm transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-sm text-gray-800 group-hover:text-[#004d33]">
+                          {launcher.name}
+                        </p>
+                        <ExternalLink size={14} className="text-gray-400 group-hover:text-[#004d33]" />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 leading-snug">
+                        {launcher.description}
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {result.isDemo && (
             <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3 text-amber-900">
               <Info size={20} className="mt-0.5 shrink-0" />
               <div className="text-sm">
-                <p className="font-semibold">Modo demonstração</p>
+                <p className="font-semibold">Prévia com dados de demonstração</p>
                 <p className="mt-1">
-                  Estes resultados são <strong>fictícios</strong> e não refletem preços ou
-                  disponibilidade reais. Para ativar a busca real, configure{" "}
-                  <code className="bg-amber-100 px-1 rounded">AMADEUS_CLIENT_ID</code> e{" "}
-                  <code className="bg-amber-100 px-1 rounded">AMADEUS_CLIENT_SECRET</code> nas
-                  variáveis de ambiente do Vercel.
+                  Os resultados abaixo são <strong>fictícios</strong> e servem apenas para visualizar
+                  o layout. Para comparar preços reais, use os botões dos consolidadores acima.
                 </p>
               </div>
             </div>
@@ -700,20 +733,7 @@ export default function FlightSearchClient() {
 
               <div className="space-y-3">
                 <p className="text-sm text-gray-500">
-                  {filteredAndSorted.length} de {result.itineraries.length} voo(s)
-                  {googleFlightsUrl && (
-                    <>
-                      {" · "}
-                      <a
-                        href={googleFlightsUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[#004d33] hover:underline"
-                      >
-                        Comparar no Google Flights <ExternalLink size={12} />
-                      </a>
-                    </>
-                  )}
+                  {filteredAndSorted.length} de {result.itineraries.length} voo(s) (prévia)
                 </p>
                 {filteredAndSorted.map((it) => (
                   <ItineraryCard key={it.id} itinerary={it} />
