@@ -6,10 +6,16 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { buttonVariants } from "@/components/ui/button";
 import StatusBadge from "@/components/status-badge";
 import RequestActions from "./request-actions";
-import { ArrowLeft, Calendar, MapPin, User, FileText } from "lucide-react";
+import AutoQuotation from "./auto-quotation";
+import { ArrowLeft, Calendar, MapPin, User, FileText, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import {
+  buildLaunchParamsFromRequest,
+  getRequestDetailLaunchers,
+} from "@/lib/flight-search/request-launch";
 
 export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -40,6 +46,14 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
 
   const fmt = (d: Date) => format(d, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   const fmtShort = (d: Date) => format(d, "dd/MM/yyyy HH:mm", { locale: ptBR });
+
+  const launchParams = buildLaunchParamsFromRequest({
+    origin: request.origin,
+    destination: request.destination,
+    departureDate: request.departureDate,
+    returnDate: request.returnDate,
+  });
+  const detailLaunchers = launchParams ? getRequestDetailLaunchers() : [];
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -140,6 +154,42 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           </div>
         </CardContent>
       </Card>
+
+      {(role === "FINANCEIRO" || role === "MASTER") &&
+        request.status === "PENDING_QUOTATION" &&
+        launchParams && (
+          <AutoQuotation requestId={request.id} />
+        )}
+
+      {launchParams && detailLaunchers.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ExternalLink size={16} />
+              Buscar cotação nos consolidadores
+            </CardTitle>
+            <p className="text-xs text-gray-500 mt-1">
+              Abre o site do consolidador em nova aba, já com a rota e as datas desta solicitação preenchidas.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {detailLaunchers.map((launcher) => (
+                <a
+                  key={launcher.id}
+                  href={launcher.buildUrl(launchParams)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  {launcher.name}
+                  <ExternalLink size={14} className="ml-1" />
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {request.quotation && (
         <Card>
