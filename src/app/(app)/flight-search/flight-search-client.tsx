@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { AirportSelect } from "@/components/airport-select";
 import {
   Loader2,
@@ -15,26 +14,18 @@ import {
   Clock,
   Luggage,
   ArrowRight,
-  Info,
   AlertTriangle,
   ExternalLink,
-  Tag,
-  Zap,
-  Trophy,
 } from "lucide-react";
 import type {
   CabinClass,
   DateFlexibility,
-  DepartureTimeFilter,
-  FlightBadge,
   FlightItinerary,
   FlightSearchResult,
   MaxStops,
-  SortBy,
   TripType,
 } from "@/lib/flight-search/types";
 import { findAirport } from "@/lib/airports";
-import { LAUNCHERS, type LaunchParams } from "@/lib/flight-search/launchers";
 
 interface FormState {
   origin: string;
@@ -97,140 +88,18 @@ function fmtDate(iso: string): string {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-function hourOf(iso: string): number {
-  return new Date(iso).getHours();
-}
-
-function matchesTimeFilter(hour: number, filter: DepartureTimeFilter): boolean {
-  switch (filter) {
-    case "ANY":
-      return true;
-    case "MORNING":
-      return hour >= 6 && hour < 12;
-    case "AFTERNOON":
-      return hour >= 12 && hour < 18;
-    case "EVENING":
-      return hour >= 18 && hour < 22;
-    case "NIGHT":
-      return hour < 6 || hour >= 22;
-  }
-}
-
-function badgeLabel(b: FlightBadge): { text: string; icon: React.ReactNode; className: string } {
-  switch (b) {
-    case "CHEAPEST":
-      return {
-        text: "Mais barato",
-        icon: <Tag size={12} />,
-        className: "bg-green-100 text-green-800",
-      };
-    case "FASTEST":
-      return {
-        text: "Mais rápido",
-        icon: <Zap size={12} />,
-        className: "bg-blue-100 text-blue-800",
-      };
-    case "BEST_VALUE":
-      return {
-        text: "Melhor custo-benefício",
-        icon: <Trophy size={12} />,
-        className: "bg-amber-100 text-amber-800",
-      };
-  }
-}
-
 export default function FlightSearchClient() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<FlightSearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [launchParams, setLaunchParams] = useState<LaunchParams | null>(null);
-
-  const [sortBy, setSortBy] = useState<SortBy>("PRICE");
-  const [filterAirlines, setFilterAirlines] = useState<Set<string>>(new Set());
-  const [filterStops, setFilterStops] = useState<"ALL" | "0" | "1" | "2">("ALL");
-  const [filterPriceMin, setFilterPriceMin] = useState("");
-  const [filterPriceMax, setFilterPriceMax] = useState("");
-  const [filterDepTime, setFilterDepTime] = useState<DepartureTimeFilter>("ANY");
-  const [filterMaxDuration, setFilterMaxDuration] = useState("");
-  const [filterBaggageOnly, setFilterBaggageOnly] = useState(false);
 
   const update = <K extends keyof FormState>(key: K, val: FormState[K]) =>
     setForm((s) => ({ ...s, [key]: val }));
 
-  const availableAirlines = useMemo(() => {
-    if (!result) return [];
-    const map = new Map<string, string>();
-    for (const it of result.itineraries) {
-      map.set(it.mainAirline, it.mainAirlineName ?? it.mainAirline);
-    }
-    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
-  }, [result]);
-
-  const filteredAndSorted = useMemo(() => {
-    if (!result) return [];
-    let items = result.itineraries.slice();
-
-    if (filterAirlines.size > 0) {
-      items = items.filter((it) => filterAirlines.has(it.mainAirline));
-    }
-    if (filterStops !== "ALL") {
-      items = items.filter((it) => it.stopsCount === parseInt(filterStops));
-    }
-    const priceMin = parseFloat(filterPriceMin);
-    const priceMax = parseFloat(filterPriceMax);
-    if (!Number.isNaN(priceMin)) items = items.filter((it) => it.totalPrice >= priceMin);
-    if (!Number.isNaN(priceMax)) items = items.filter((it) => it.totalPrice <= priceMax);
-    if (filterDepTime !== "ANY") {
-      items = items.filter((it) =>
-        matchesTimeFilter(hourOf(it.segments[0].departureTime), filterDepTime),
-      );
-    }
-    const maxDur = parseInt(filterMaxDuration);
-    if (!Number.isNaN(maxDur)) {
-      items = items.filter((it) => it.totalDurationMinutes <= maxDur * 60);
-    }
-    if (filterBaggageOnly) {
-      items = items.filter((it) => it.baggageIncluded);
-    }
-
-    items.sort((a, b) => {
-      switch (sortBy) {
-        case "PRICE":
-          return a.totalPrice - b.totalPrice;
-        case "DURATION":
-          return a.totalDurationMinutes - b.totalDurationMinutes;
-        case "STOPS":
-          return a.stopsCount - b.stopsCount || a.totalPrice - b.totalPrice;
-        case "VALUE":
-          return (
-            a.totalPrice / 1000 + a.totalDurationMinutes / 60 -
-            (b.totalPrice / 1000 + b.totalDurationMinutes / 60)
-          );
-      }
-    });
-
-    return items;
-  }, [
-    result,
-    sortBy,
-    filterAirlines,
-    filterStops,
-    filterPriceMin,
-    filterPriceMax,
-    filterDepTime,
-    filterMaxDuration,
-    filterBaggageOnly,
-  ]);
-
-  function toggleAirline(code: string) {
-    setFilterAirlines((prev) => {
-      const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
-  }
+  const top3 = result
+    ? [...result.itineraries].sort((a, b) => a.totalPrice - b.totalPrice).slice(0, 3)
+    : [];
 
   function validate(): string | null {
     if (!form.origin || !form.destination) return "Selecione origem e destino.";
@@ -253,21 +122,6 @@ export default function FlightSearchClient() {
     setLoading(true);
     setError(null);
     setResult(null);
-    setLaunchParams({
-      origin: form.origin,
-      destination: form.destination,
-      departureDate: form.departureDate,
-      returnDate: form.tripType === "ROUND_TRIP" ? form.returnDate : undefined,
-      passengers: form.passengers,
-      cabinClass: form.cabinClass,
-    });
-    setFilterAirlines(new Set());
-    setFilterStops("ALL");
-    setFilterPriceMin("");
-    setFilterPriceMax("");
-    setFilterDepTime("ANY");
-    setFilterMaxDuration("");
-    setFilterBaggageOnly(false);
 
     const payload = {
       origin: form.origin,
@@ -304,7 +158,7 @@ export default function FlightSearchClient() {
       }
       const data = (await res.json()) as FlightSearchResult;
       setResult(data);
-    } catch (e) {
+    } catch {
       setError("Erro de rede. Verifique sua conexão e tente novamente.");
     } finally {
       setLoading(false);
@@ -519,235 +373,30 @@ export default function FlightSearchClient() {
       )}
 
       {result && !loading && (
-        <>
-          {launchParams && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <ExternalLink size={16} />
-                  Comparar preços reais nos consolidadores
-                </CardTitle>
-                <p className="text-xs text-gray-500 mt-1">
-                  Cada botão abre o site do consolidador já com a sua busca preenchida em uma nova aba.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {LAUNCHERS.map((launcher) => (
-                    <a
-                      key={launcher.id}
-                      href={launcher.buildUrl(launchParams)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group rounded-lg border border-gray-200 p-3 hover:border-[#004d33] hover:shadow-sm transition"
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold text-sm text-gray-800 group-hover:text-[#004d33]">
-                          {launcher.name}
-                        </p>
-                        <ExternalLink size={14} className="text-gray-400 group-hover:text-[#004d33]" />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 leading-snug">
-                        {launcher.description}
-                      </p>
-                    </a>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {result.isDemo && (
-            <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-start gap-3 text-amber-900">
-              <Info size={20} className="mt-0.5 shrink-0" />
-              <div className="text-sm">
-                <p className="font-semibold">Prévia com dados de demonstração</p>
-                <p className="mt-1">
-                  Os resultados abaixo são <strong>fictícios</strong> e servem apenas para visualizar
-                  o layout. Para comparar preços reais, use os botões dos consolidadores acima.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {result.warnings.length > 0 && !result.isDemo && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-              {result.warnings.map((w, i) => (
-                <p key={i}>{w}</p>
-              ))}
-            </div>
-          )}
-
+        top3.length === 0 ? (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Promoções verificadas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {result.promotions.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  Nenhuma promoção verificada encontrada para esta rota no momento. Esta área será
-                  populada quando houver fontes oficiais de ofertas integradas.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {result.promotions.map((p, i) => (
-                    <li key={i} className="text-sm">
-                      <a href={p.sourceUrl} target="_blank" rel="noreferrer" className="font-medium text-[#004d33] hover:underline">
-                        {p.title}
-                      </a>
-                      <p className="text-gray-600">{p.description}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Fonte: {p.source}{p.validUntil ? ` · válido até ${p.validUntil}` : ""}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <CardContent className="p-10 text-center space-y-3 text-gray-600">
+              <Plane size={32} className="mx-auto text-gray-400" />
+              <p className="font-medium">Nenhum voo encontrado</p>
+              <p className="text-sm text-gray-500 max-w-md mx-auto">
+                Experimente alterar as datas, permitir aeroportos próximos ou aumentar o limite de preço/escalas.
+              </p>
             </CardContent>
           </Card>
-
-          {result.itineraries.length === 0 ? (
-            <Card>
-              <CardContent className="p-10 text-center space-y-3 text-gray-600">
-                <Plane size={32} className="mx-auto text-gray-400" />
-                <p className="font-medium">Nenhum voo encontrado</p>
-                <p className="text-sm text-gray-500 max-w-md mx-auto">
-                  Experimente alterar as datas, permitir aeroportos próximos ou aumentar o limite de preço/escalas.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-[260px_1fr] gap-6">
-              <aside className="space-y-5">
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Ordenar por</p>
-                  <select
-                    className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortBy)}
-                  >
-                    <option value="PRICE">Menor preço</option>
-                    <option value="DURATION">Menor duração</option>
-                    <option value="STOPS">Menor número de escalas</option>
-                    <option value="VALUE">Melhor custo-benefício</option>
-                  </select>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Companhia</p>
-                  {availableAirlines.length === 0 ? (
-                    <p className="text-xs text-gray-400">—</p>
-                  ) : (
-                    availableAirlines.map(([code, name]) => (
-                      <label key={code} className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={filterAirlines.has(code)}
-                          onChange={() => toggleAirline(code)}
-                        />
-                        <span>{name}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Escalas</p>
-                  {(["ALL", "0", "1", "2"] as const).map((v) => (
-                    <label key={v} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="radio"
-                        name="stops-filter"
-                        checked={filterStops === v}
-                        onChange={() => setFilterStops(v)}
-                      />
-                      {v === "ALL" ? "Todas" : v === "0" ? "Direto" : v === "1" ? "1 escala" : "2 escalas"}
-                    </label>
-                  ))}
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Faixa de preço</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Mín"
-                      value={filterPriceMin}
-                      onChange={(e) => setFilterPriceMin(e.target.value)}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Máx"
-                      value={filterPriceMax}
-                      onChange={(e) => setFilterPriceMax(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Horário de saída</p>
-                  <select
-                    className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
-                    value={filterDepTime}
-                    onChange={(e) => setFilterDepTime(e.target.value as DepartureTimeFilter)}
-                  >
-                    <option value="ANY">Qualquer horário</option>
-                    <option value="MORNING">Manhã (06h–12h)</option>
-                    <option value="AFTERNOON">Tarde (12h–18h)</option>
-                    <option value="EVENING">Noite (18h–22h)</option>
-                    <option value="NIGHT">Madrugada (22h–06h)</option>
-                  </select>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700">Duração máx. (horas)</p>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 12"
-                    value={filterMaxDuration}
-                    onChange={(e) => setFilterMaxDuration(e.target.value)}
-                  />
-                </div>
-
-                <Separator />
-
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filterBaggageOnly}
-                    onChange={(e) => setFilterBaggageOnly(e.target.checked)}
-                  />
-                  Somente com bagagem
-                </label>
-              </aside>
-
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">
-                  {filteredAndSorted.length} de {result.itineraries.length} voo(s) (prévia)
-                </p>
-                {filteredAndSorted.map((it) => (
-                  <ItineraryCard key={it.id} itinerary={it} />
-                ))}
-              </div>
-            </div>
-          )}
-        </>
+        ) : (
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-gray-700">3 passagens mais baratas</h2>
+            {top3.map((it, i) => (
+              <ItineraryCard key={it.id} itinerary={it} rank={i + 1} />
+            ))}
+          </div>
+        )
       )}
     </div>
   );
 }
 
-function ItineraryCard({ itinerary }: { itinerary: FlightItinerary }) {
+function ItineraryCard({ itinerary, rank }: { itinerary: FlightItinerary; rank: number }) {
   const first = itinerary.segments[0];
   const last = itinerary.segments[itinerary.segments.length - 1];
   const originAirport = findAirport(first.originCode);
@@ -757,24 +406,13 @@ function ItineraryCard({ itinerary }: { itinerary: FlightItinerary }) {
     <Card>
       <CardContent className="p-4">
         <div className="flex gap-4">
+          <div className="flex items-center justify-center size-7 rounded-full bg-[#004d33] text-white text-xs font-bold shrink-0">
+            {rank}º
+          </div>
           <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-sm">
-                {itinerary.mainAirlineName ?? itinerary.mainAirline}
-              </p>
-              {itinerary.badges.map((b) => {
-                const info = badgeLabel(b);
-                return (
-                  <span
-                    key={b}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${info.className}`}
-                  >
-                    {info.icon}
-                    {info.text}
-                  </span>
-                );
-              })}
-            </div>
+            <p className="font-semibold text-sm">
+              {itinerary.mainAirlineName ?? itinerary.mainAirline}
+            </p>
 
             <div className="flex items-center gap-3 text-sm">
               <div>
