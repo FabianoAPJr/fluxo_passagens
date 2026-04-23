@@ -69,6 +69,7 @@ model User {
   managedRequests  TravelRequest[] @relation("ManagerRequests")
   managedRequests2 TravelRequest[] @relation("Manager2Requests")
   quotations       Quotation[]
+  requestEvents    RequestEvent[]  @relation("RequestEventActor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -103,9 +104,36 @@ model TravelRequest {
   manager   User       @relation("ManagerRequests", fields: [managerId], references: [id])
   manager2  User?      @relation("Manager2Requests", fields: [manager2Id], references: [id])
   quotation Quotation?
+  events    RequestEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model RequestEvent {
+  id        String           @id @default(cuid())
+  requestId String
+  actorId   String?
+  type      RequestEventType
+  payload   Json?
+  createdAt DateTime         @default(now())
+
+  request TravelRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  actor   User?         @relation("RequestEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([requestId, createdAt])
+}
+
+enum RequestEventType {
+  SUBMITTED
+  MANAGER_APPROVED
+  MANAGER_REJECTED
+  MANAGER2_APPROVED
+  MANAGER2_REJECTED
+  QUOTATION_SUBMITTED
+  TRAVELER_APPROVED
+  TRAVELER_REJECTED
+  CANCELLED
 }
 
 enum RequestStatus {

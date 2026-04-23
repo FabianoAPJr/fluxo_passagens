@@ -132,10 +132,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const hasManager2 = !!request.manager2Id;
     const nextStatus = hasManager2 ? "PENDING_MANAGER_2" : "PENDING_QUOTATION";
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: nextStatus },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: nextStatus },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "MANAGER_APPROVED" },
+      }),
+    ]);
 
     if (hasManager2) {
       // Notify 2nd manager
@@ -158,10 +163,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (request.status !== "PENDING_MANAGER") return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     if (!rejectionReason) return NextResponse.json({ error: "Motivo obrigatório" }, { status: 400 });
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "REJECTED_BY_MANAGER", rejectionReason },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "REJECTED_BY_MANAGER", rejectionReason },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "MANAGER_REJECTED", payload: { rejectionReason } },
+      }),
+    ]);
 
     await notifyUser(request.requester, `[SOMUS-Travel] Viagem negada – ${emailData.requesterName} – ${request.destination}`, emailManagerRejected({ ...emailData, rejectionReason }));
   }
@@ -171,10 +181,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (request.manager2Id !== userId && role !== "MASTER") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     if (request.status !== "PENDING_MANAGER_2") return NextResponse.json({ error: "Status inválido" }, { status: 400 });
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "PENDING_QUOTATION" },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "PENDING_QUOTATION" },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "MANAGER2_APPROVED" },
+      }),
+    ]);
 
     // Notify financial team
     const financials = await prisma.user.findMany({ where: { role: { in: ["FINANCEIRO", "MASTER"] } } });
@@ -189,10 +204,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (request.status !== "PENDING_MANAGER_2") return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     if (!rejectionReason) return NextResponse.json({ error: "Motivo obrigatório" }, { status: 400 });
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "REJECTED_BY_MANAGER_2", rejectionReason },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "REJECTED_BY_MANAGER_2", rejectionReason },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "MANAGER2_REJECTED", payload: { rejectionReason } },
+      }),
+    ]);
 
     await notifyUser(request.requester, `[SOMUS-Travel] Viagem negada pelo 2º gestor – ${emailData.requesterName} – ${request.destination}`, emailManagerRejected({ ...emailData, rejectionReason }));
   }
@@ -208,16 +228,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       returnDate: quotation.returnDate ? new Date(quotation.returnDate) : null,
     };
 
-    const savedQuotation = await prisma.quotation.upsert({
-      where: { requestId: id },
-      create: { request: { connect: { id } }, financial: { connect: { id: userId } }, ...quotationData },
-      update: { financial: { connect: { id: userId } }, ...quotationData },
-    });
-
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "PENDING_TRAVELER" },
-    });
+    const [savedQuotation, updatedTravel] = await prisma.$transaction([
+      prisma.quotation.upsert({
+        where: { requestId: id },
+        create: { request: { connect: { id } }, financial: { connect: { id: userId } }, ...quotationData },
+        update: { financial: { connect: { id: userId } }, ...quotationData },
+      }),
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "PENDING_TRAVELER" },
+      }),
+      prisma.requestEvent.create({
+        data: {
+          requestId: id,
+          actorId: userId,
+          type: "QUOTATION_SUBMITTED",
+          payload: quotation.locatorCode ? { locatorCode: quotation.locatorCode } : undefined,
+        },
+      }),
+    ]);
+    updated = updatedTravel;
 
     await notifyUser(
       request.requester,
@@ -230,11 +260,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (request.requesterId !== userId && role !== "MASTER") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     if (request.status !== "PENDING_TRAVELER") return NextResponse.json({ error: "Status inválido" }, { status: 400 });
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "APPROVED" },
-      include: { quotation: true },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "APPROVED" },
+        include: { quotation: true },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "TRAVELER_APPROVED" },
+      }),
+    ]);
 
     const airline = (updated as any).quotation?.outboundAirline ?? "N/A";
     await notifyUser(request.manager, `[SOMUS-Travel] Viagem confirmada – ${emailData.requesterName} – ${request.destination}`, emailTravelerApproved({ ...emailData, airline }));
@@ -260,10 +295,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (request.status !== "PENDING_TRAVELER") return NextResponse.json({ error: "Status inválido" }, { status: 400 });
     if (!rejectionReason) return NextResponse.json({ error: "Motivo obrigatório" }, { status: 400 });
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "REJECTED_BY_TRAVELER", rejectionReason },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "REJECTED_BY_TRAVELER", rejectionReason },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "TRAVELER_REJECTED", payload: { rejectionReason } },
+      }),
+    ]);
 
     const financials = await prisma.user.findMany({ where: { role: { in: ["FINANCEIRO", "MASTER"] } } });
     for (const f of financials) {
@@ -277,10 +317,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Não é possível cancelar neste status" }, { status: 400 });
     }
 
-    updated = await prisma.travelRequest.update({
-      where: { id: id },
-      data: { status: "CANCELLED" },
-    });
+    [updated] = await prisma.$transaction([
+      prisma.travelRequest.update({
+        where: { id: id },
+        data: { status: "CANCELLED" },
+      }),
+      prisma.requestEvent.create({
+        data: { requestId: id, actorId: userId, type: "CANCELLED" },
+      }),
+    ]);
   }
 
   return NextResponse.json(updated);

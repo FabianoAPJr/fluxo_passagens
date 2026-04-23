@@ -106,6 +106,9 @@ export async function POST(req: NextRequest) {
       returnTimeFrom,
       returnTimeTo,
       reason,
+      events: {
+        create: { actorId: session.user.id, type: "SUBMITTED" },
+      },
     },
     include: {
       requester: true,

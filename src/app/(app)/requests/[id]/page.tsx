@@ -10,7 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import StatusBadge from "@/components/status-badge";
 import RequestActions from "./request-actions";
 import AutoQuotation from "./auto-quotation";
-import { ArrowLeft, Calendar, MapPin, User, FileText, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, FileText, ExternalLink, History } from "lucide-react";
 import Link from "next/link";
 import {
   buildLaunchParamsFromRequest,
@@ -31,6 +31,10 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
       manager: { select: { id: true, name: true, email: true } },
       manager2: { select: { id: true, name: true, email: true } },
       quotation: { include: { financial: { select: { id: true, name: true, email: true } } } },
+      events: {
+        include: { actor: { select: { id: true, name: true } } },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -328,6 +332,41 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         </Card>
       )}
 
+      {request.events.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <History size={16} /> Histórico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="relative border-l border-gray-200 ml-2 space-y-4">
+              {request.events.map((ev) => {
+                const payload = (ev.payload ?? {}) as { rejectionReason?: string; locatorCode?: string };
+                return (
+                  <li key={ev.id} className="ml-4">
+                    <span
+                      className={`absolute -left-1.5 w-3 h-3 rounded-full border-2 border-white ${eventDotColor(ev.type)}`}
+                    />
+                    <p className="text-sm font-medium text-gray-800">{eventLabel(ev.type)}</p>
+                    <p className="text-xs text-gray-400">
+                      {fmtShort(ev.createdAt)}
+                      {ev.actor?.name ? ` · ${ev.actor.name}` : ""}
+                    </p>
+                    {payload.rejectionReason && (
+                      <p className="text-xs text-red-700 mt-1">Motivo: {payload.rejectionReason}</p>
+                    )}
+                    {payload.locatorCode && (
+                      <p className="text-xs text-[#967439] mt-1 tracking-wider">Localizador: {payload.locatorCode}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </CardContent>
+        </Card>
+      )}
+
       <RequestActions
         request={{
           id: request.id,
@@ -341,4 +380,25 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
       />
     </div>
   );
+}
+
+function eventLabel(type: string): string {
+  switch (type) {
+    case "SUBMITTED": return "Solicitação enviada";
+    case "MANAGER_APPROVED": return "Aprovada pelo gestor";
+    case "MANAGER_REJECTED": return "Negada pelo gestor";
+    case "MANAGER2_APPROVED": return "Aprovada pelo 2º gestor";
+    case "MANAGER2_REJECTED": return "Negada pelo 2º gestor";
+    case "QUOTATION_SUBMITTED": return "Cotação enviada pelo financeiro";
+    case "TRAVELER_APPROVED": return "Cotação aprovada pelo solicitante";
+    case "TRAVELER_REJECTED": return "Cotação recusada pelo solicitante";
+    case "CANCELLED": return "Solicitação cancelada";
+    default: return type;
+  }
+}
+
+function eventDotColor(type: string): string {
+  if (type.includes("REJECTED") || type === "CANCELLED") return "bg-red-500";
+  if (type.includes("APPROVED")) return "bg-[#004d33]";
+  return "bg-gray-400";
 }
