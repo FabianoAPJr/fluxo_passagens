@@ -41,9 +41,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   });
 
   if (result.sucesso) {
+    const top3 = [...result.ofertas].sort((a, b) => a.preco - b.preco).slice(0, 3);
     return NextResponse.json({
       sucesso: true,
-      ofertas: result.ofertas,
+      ofertas: top3,
       duracaoMs: result.duracaoMs,
     });
   }

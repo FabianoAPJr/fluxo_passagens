@@ -66,7 +66,7 @@ export default function AutoQuotation({ requestId }: AutoQuotationProps) {
           Cotação automática
         </CardTitle>
         <p className="text-xs text-gray-500 mt-1">
-          Tenta buscar ofertas diretamente no Decolar. Pode quebrar a qualquer momento — se falhar, use os links manuais abaixo.
+          Busca ofertas no Decolar e exibe as <strong>3 mais baratas</strong>. Pode quebrar a qualquer momento — se falhar, use os links manuais abaixo.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -93,7 +93,7 @@ export default function AutoQuotation({ requestId }: AutoQuotationProps) {
             </p>
             <div className="space-y-2">
               {result.ofertas.map((o, i) => (
-                <OfertaCard key={i} oferta={o} />
+                <OfertaCard key={i} oferta={o} rank={i + 1} />
               ))}
             </div>
           </>
@@ -103,9 +103,12 @@ export default function AutoQuotation({ requestId }: AutoQuotationProps) {
   );
 }
 
-function OfertaCard({ oferta }: { oferta: OfertaVoo }) {
+function OfertaCard({ oferta, rank }: { oferta: OfertaVoo; rank: number }) {
   return (
     <div className="rounded-lg border border-gray-200 p-3 flex items-center gap-4">
+      <div className="flex items-center justify-center size-7 rounded-full bg-[#004d33] text-white text-xs font-bold shrink-0">
+        {rank}º
+      </div>
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-3 text-sm">
           <span className="font-semibold">{oferta.companhia}</span>
