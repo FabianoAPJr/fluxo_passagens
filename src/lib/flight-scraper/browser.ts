@@ -103,7 +103,7 @@ interface ChromiumWithPlugins {
 
 async function preloadStealthEvasions(chromium: ChromiumWithPlugins): Promise<void> {
   // Imports estáticos (não dinâmicos) — o Turbopack e o file tracer seguem
-  // string literal e copiam os 16 módulos para o bundle serverless.
+  // string literal e copiam os módulos para o bundle serverless.
   const evasions = await Promise.all([
     import("puppeteer-extra-plugin-stealth/evasions/chrome.app"),
     import("puppeteer-extra-plugin-stealth/evasions/chrome.csi"),
@@ -146,4 +146,20 @@ async function preloadStealthEvasions(chromium: ChromiumWithPlugins): Promise<vo
     const resolved = (mod as { default?: unknown }).default ?? mod;
     chromium.plugins.setDependencyResolution(`stealth/evasions/${names[i]}`, resolved);
   });
+
+  // user-agent-override declara 'user-preferences' como dep transitiva, que
+  // por sua vez declara 'user-data-dir'. Registra os dois para não cair em
+  // require dinâmico na cadeia inteira.
+  const [userPrefs, userDataDir] = await Promise.all([
+    import("puppeteer-extra-plugin-user-preferences"),
+    import("puppeteer-extra-plugin-user-data-dir"),
+  ]);
+  chromium.plugins.setDependencyResolution(
+    "user-preferences",
+    (userPrefs as { default?: unknown }).default ?? userPrefs,
+  );
+  chromium.plugins.setDependencyResolution(
+    "user-data-dir",
+    (userDataDir as { default?: unknown }).default ?? userDataDir,
+  );
 }
