@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       "./node_modules/clone-deep/**/*",
       "./node_modules/merge-deep/**/*",
       "./node_modules/puppeteer-extra-plugin-user-data-dir/**/*",
+      // Binários do Chromium (.br) — o file tracer não detecta assets, mas
+      // @sparticuz/chromium.executablePath() precisa deles em runtime.
+      "./node_modules/@sparticuz/chromium/bin/**/*",
     ],
     "/api/requests/[id]/cotar-automatico": [
       "./node_modules/is-plain-object/**/*",
@@ -42,6 +45,7 @@ const nextConfig: NextConfig = {
       "./node_modules/clone-deep/**/*",
       "./node_modules/merge-deep/**/*",
       "./node_modules/puppeteer-extra-plugin-user-data-dir/**/*",
+      "./node_modules/@sparticuz/chromium/bin/**/*",
     ],
   },
 };
