@@ -11,7 +11,6 @@ import {
   AGUARDO_MARKER_MS,
   AGUARDO_POS_CARGA_MS,
   AGUARDO_POS_MODAL_MS,
-  buildDecolarResultsUrl,
   MAX_OFERTAS,
   SELETORES,
   TIMEOUT_NAVEGACAO_MS,
@@ -81,7 +80,6 @@ async function executarTentativa(
   dados: ScrapeInput,
   orcamentoMs: number,
 ): Promise<{ sucesso: boolean; ofertas: OfertaVoo[]; erro?: string }> {
-  const url = buildDecolarResultsUrl(dados);
   let browser: Browser | undefined;
 
   try {
@@ -91,13 +89,30 @@ async function executarTentativa(
 
     page.setDefaultTimeout(Math.min(orcamentoMs, TIMEOUT_NAVEGACAO_MS));
 
-    await page.goto(url, {
+    // Fluxo via home — passa pelo formulário como um usuário real em vez
+    // de acessar a URL de resultados direto (que o Datadome serve vazio).
+    await page.goto("https://www.decolar.com/", {
       waitUntil: "domcontentloaded",
       timeout: TIMEOUT_NAVEGACAO_MS,
     });
+    await simularHumano(page);
+    await dismissCookieBanner(page);
 
-    // Aguarda JS/XHR iniciais e simula atividade humana cedo para não disparar heurística
-    // de "zero interação". Depois aguarda o marker do primeiro card aparecer.
+    const bloqueioHome = await detectarBloqueio(page);
+    if (bloqueioHome) {
+      await logDiagnostico(page, "home");
+      return { sucesso: false, ofertas: [], erro: `Bloqueio na home: ${bloqueioHome}` };
+    }
+
+    await selecionarTipoViagem(page, dados);
+    await preencherAeroporto(page, "origin", dados.origem);
+    await preencherAeroporto(page, "destination", dados.destino);
+    await selecionarDatas(page, dados);
+    if (dados.adultos > 1) await ajustarPassageiros(page, dados.adultos);
+    await clicarBuscar(page);
+
+    // Espera o redirect para a URL de resultados
+    await page.waitForURL(/shop\/flights\/results/, { timeout: TIMEOUT_NAVEGACAO_MS });
     await simularHumano(page);
     await page.waitForTimeout(AGUARDO_POS_CARGA_MS);
     await dismissLoginModal(page);
@@ -114,7 +129,7 @@ async function executarTentativa(
     const ofertas = await extrairOfertas(page, linkCompra);
 
     if (ofertas.length === 0) {
-      await logDiagnostico(page);
+      await logDiagnostico(page, "resultados");
       return { sucesso: false, ofertas: [], erro: "Nenhuma oferta extraída (possível bloqueio silencioso)" };
     }
     return { sucesso: true, ofertas };
@@ -123,7 +138,164 @@ async function executarTentativa(
   }
 }
 
-async function logDiagnostico(page: Page): Promise<void> {
+async function dismissCookieBanner(page: Page): Promise<void> {
+  const candidatos = ['button:has-text("Entendi")', 'button:has-text("Aceitar")', 'button:has-text("OK")'];
+  for (const sel of candidatos) {
+    try {
+      const btn = page.locator(sel).first();
+      if (await btn.isVisible({ timeout: 1_500 })) {
+        await btn.click({ timeout: 2_000 });
+        await page.waitForTimeout(500);
+        return;
+      }
+    } catch {
+      /* tentar próximo */
+    }
+  }
+}
+
+async function selecionarTipoViagem(page: Page, dados: ScrapeInput): Promise<void> {
+  const tipo = dados.dataVolta ? "Ida e volta" : "Só ida";
+  try {
+    // Abre dropdown (botão costuma mostrar o tipo atual)
+    const dropdown = page.locator(
+      'button:has-text("Ida e volta"), button:has-text("Só ida"), [data-sfa-id*="trip-type"]',
+    ).first();
+    if (await dropdown.isVisible({ timeout: 3_000 })) {
+      const textoAtual = (await dropdown.textContent())?.trim() ?? "";
+      if (textoAtual.includes(tipo)) return;
+      await dropdown.click({ timeout: 2_000 });
+      await page.waitForTimeout(400);
+      await page.locator(`text=${tipo}`).first().click({ timeout: 2_000 });
+      await page.waitForTimeout(400);
+    }
+  } catch (e) {
+    console.log(
+      JSON.stringify({
+        scope: "flight-scraper",
+        kind: "selecionarTipoViagem-falhou",
+        erro: e instanceof Error ? e.message : String(e),
+      }),
+    );
+  }
+}
+
+async function preencherAeroporto(
+  page: Page,
+  campo: "origin" | "destination",
+  iata: string,
+): Promise<void> {
+  const placeholder = campo === "origin" ? "Origem" : "Destino";
+  const input = page.locator(
+    `input[placeholder*="${placeholder}"], input[id*="${campo}"], [data-sfa-id*="${campo}"] input`,
+  ).first();
+
+  await input.click({ timeout: 5_000 });
+  await input.fill("");
+  await input.type(iata, { delay: 80 });
+
+  // Autocomplete: primeira opção que contenha o código IATA (estável entre países)
+  const sugestao = page.locator(
+    `li[role="option"]:has-text("${iata}"), [role="listbox"] [role="option"]:has-text("${iata}"), [role="listbox"] li:has-text("${iata}")`,
+  ).first();
+  await sugestao.waitFor({ state: "visible", timeout: 6_000 });
+  await sugestao.click({ timeout: 2_000 });
+  await page.waitForTimeout(300);
+}
+
+async function selecionarDatas(page: Page, dados: ScrapeInput): Promise<void> {
+  await clicarDataCalendario(page, dados.dataIda);
+  if (dados.dataVolta) {
+    await clicarDataCalendario(page, dados.dataVolta);
+  }
+  // Alguns calendários precisam confirmar com "Aplicar"
+  try {
+    const aplicar = page.locator('button:has-text("Aplicar")').first();
+    if (await aplicar.isVisible({ timeout: 1_500 })) {
+      await aplicar.click({ timeout: 2_000 });
+    }
+  } catch {
+    /* fora do fluxo — seguir */
+  }
+}
+
+async function clicarDataCalendario(page: Page, iso: string): Promise<void> {
+  // iso = "2026-07-23"
+  const [y, m, d] = iso.split("-").map(Number);
+  const mesNome = [
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+  ][m - 1];
+
+  const ariaCandidatos = [
+    `[aria-label*="${d} de ${mesNome} de ${y}"]`,
+    `[aria-label*="${d} ${mesNome} ${y}"]`,
+    `[data-day="${iso}"]`,
+    `[data-date="${iso}"]`,
+  ];
+
+  // Navega meses até encontrar algum seletor
+  for (let i = 0; i < 14; i++) {
+    for (const sel of ariaCandidatos) {
+      const dia = page.locator(sel).first();
+      try {
+        if (await dia.isVisible({ timeout: 300 })) {
+          await dia.click({ timeout: 2_000 });
+          await page.waitForTimeout(300);
+          return;
+        }
+      } catch {
+        /* tentar próximo */
+      }
+    }
+    // Avança mês
+    try {
+      await page
+        .locator('[aria-label*="Próximo mês"], [aria-label*="Next month"], button[data-sfa-id*="next"]')
+        .first()
+        .click({ timeout: 2_000 });
+      await page.waitForTimeout(250);
+    } catch {
+      break;
+    }
+  }
+
+  throw new Error(`Data ${iso} não encontrada no calendário`);
+}
+
+async function ajustarPassageiros(page: Page, adultos: number): Promise<void> {
+  try {
+    const seletor = page.locator(
+      'button:has-text("1 passageiro"), button:has-text("1 adulto"), [data-sfa-id*="passengers"]',
+    ).first();
+    if (await seletor.isVisible({ timeout: 2_000 })) {
+      await seletor.click({ timeout: 2_000 });
+      await page.waitForTimeout(300);
+      for (let i = 1; i < adultos; i++) {
+        const mais = page.locator('[aria-label*="Adicionar adulto"], button:has-text("+")').first();
+        await mais.click({ timeout: 2_000 });
+      }
+      await page.waitForTimeout(200);
+    }
+  } catch (e) {
+    console.log(
+      JSON.stringify({
+        scope: "flight-scraper",
+        kind: "ajustarPassageiros-falhou",
+        erro: e instanceof Error ? e.message : String(e),
+      }),
+    );
+  }
+}
+
+async function clicarBuscar(page: Page): Promise<void> {
+  const btn = page.locator(
+    'button:has-text("Buscar"), [data-sfa-id*="search-button"], button[type="submit"]:has-text("Buscar")',
+  ).first();
+  await btn.click({ timeout: 5_000 });
+}
+
+async function logDiagnostico(page: Page, etapa: "home" | "resultados"): Promise<void> {
   try {
     const [url, title, info] = await Promise.all([
       Promise.resolve(page.url()),
@@ -143,6 +315,7 @@ async function logDiagnostico(page: Page): Promise<void> {
         scope: "flight-scraper",
         provider: "decolar",
         kind: "diagnostico-bloqueio-silencioso",
+        etapa,
         timestamp: new Date().toISOString(),
         url,
         title,
@@ -155,6 +328,7 @@ async function logDiagnostico(page: Page): Promise<void> {
         scope: "flight-scraper",
         provider: "decolar",
         kind: "diagnostico-falhou",
+        etapa,
         erro: e instanceof Error ? e.message : String(e),
       }),
     );
