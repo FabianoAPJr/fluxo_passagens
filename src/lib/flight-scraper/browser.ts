@@ -9,13 +9,18 @@ import type { Browser, BrowserContext } from "playwright-core";
 // de fingerprint que o Datadome/Cloudflare usam para identificar headless.
 
 export async function criarBrowser(): Promise<{ browser: Browser; context: BrowserContext }> {
-  const { chromium } = (await import("playwright-extra")) as unknown as {
-    chromium: {
+  // O wrapper `playwright-extra` tenta resolver playwright/playwright-core por
+  // require dinâmico — isso falha em bundle serverless. Usamos addExtra para
+  // passar o chromium do playwright-core explicitamente.
+  const { chromium: playwrightChromium } = await import("playwright-core");
+  const { addExtra } = (await import("playwright-extra")) as unknown as {
+    addExtra: (pw: unknown) => {
       use: (plugin: unknown) => void;
       launch: (opts: Record<string, unknown>) => Promise<Browser>;
     };
   };
   const stealth = (await import("puppeteer-extra-plugin-stealth")).default;
+  const chromium = addExtra(playwrightChromium);
   chromium.use(stealth());
 
   const executablePath = await resolverExecutablePath();
