@@ -355,7 +355,8 @@ export default function FlightSearchClient() {
         <Card>
           <CardContent className="p-10 flex flex-col items-center gap-3 text-gray-500">
             <Loader2 className="animate-spin" size={32} />
-            <p className="text-sm">Buscando melhores opções…</p>
+            <p className="text-sm">Consultando a Decolar em tempo real…</p>
+            <p className="text-xs text-gray-400">Isso pode levar 20–30 segundos.</p>
           </CardContent>
         </Card>
       )}
@@ -373,24 +374,39 @@ export default function FlightSearchClient() {
       )}
 
       {result && !loading && (
-        top3.length === 0 ? (
-          <Card>
-            <CardContent className="p-10 text-center space-y-3 text-gray-600">
-              <Plane size={32} className="mx-auto text-gray-400" />
-              <p className="font-medium">Nenhum voo encontrado</p>
-              <p className="text-sm text-gray-500 max-w-md mx-auto">
-                Experimente alterar as datas, permitir aeroportos próximos ou aumentar o limite de preço/escalas.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-gray-700">3 passagens mais baratas</h2>
-            {top3.map((it, i) => (
-              <ItineraryCard key={it.id} itinerary={it} rank={i + 1} />
-            ))}
-          </div>
-        )
+        <div className="space-y-3">
+          {result.warnings.length > 0 && (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="p-4 flex items-start gap-3 text-amber-800">
+                <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+                <ul className="text-sm space-y-1 list-disc list-inside">
+                  {result.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {top3.length === 0 ? (
+            <Card>
+              <CardContent className="p-10 text-center space-y-3 text-gray-600">
+                <Plane size={32} className="mx-auto text-gray-400" />
+                <p className="font-medium">Nenhum voo encontrado</p>
+                <p className="text-sm text-gray-500 max-w-md mx-auto">
+                  Experimente alterar as datas ou aumentar o limite de preço/escalas.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <h2 className="text-sm font-semibold text-gray-700">3 passagens mais baratas</h2>
+              {top3.map((it, i) => (
+                <ItineraryCard key={it.id} itinerary={it} rank={i + 1} />
+              ))}
+            </>
+          )}
+        </div>
       )}
     </div>
   );
@@ -482,9 +498,10 @@ function ItineraryCard({ itinerary, rank }: { itinerary: FlightItinerary; rank: 
                 href={itinerary.sourceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-[#004d33] hover:underline inline-flex items-center gap-1 mt-2"
+                className="text-xs text-white bg-[#004d33] hover:bg-[#49624e] px-3 py-1.5 rounded inline-flex items-center gap-1 mt-2"
               >
-                Ver fonte <ExternalLink size={10} />
+                {itinerary.provider === "decolar" ? "Ver na Decolar" : "Ver oferta"}{" "}
+                <ExternalLink size={10} />
               </a>
             )}
           </div>

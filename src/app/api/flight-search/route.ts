@@ -5,6 +5,11 @@ import { z } from "zod";
 import { getFlightSearchProvider } from "@/lib/flight-search/provider";
 import type { FlightBadge, FlightItinerary, FlightSearchResult } from "@/lib/flight-search/types";
 
+// Scraper sobe um Chromium headless e navega — precisa de Node runtime
+// e janela ampla de execução (o scraper tem timeout interno de 55s).
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const iataRegex = /^[A-Z]{3}$/;
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 

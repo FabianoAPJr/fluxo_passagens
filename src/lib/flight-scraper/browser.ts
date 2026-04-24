@@ -3,9 +3,20 @@ import type { Browser, BrowserContext } from "playwright-core";
 // Configurações de browser para ambiente Vercel serverless. Em desenvolvimento
 // local cai no Chrome do sistema (se existir) ou no playwright-core com
 // CHROME_EXECUTABLE_PATH definido em .env.local.
+//
+// Usa playwright-extra + puppeteer-extra-plugin-stealth para contornar o
+// anti-bot da Decolar em modo headless (Vercel). O stealth aplica ~17 patches
+// de fingerprint que o Datadome/Cloudflare usam para identificar headless.
 
 export async function criarBrowser(): Promise<{ browser: Browser; context: BrowserContext }> {
-  const { chromium } = await import("playwright-core");
+  const { chromium } = (await import("playwright-extra")) as unknown as {
+    chromium: {
+      use: (plugin: unknown) => void;
+      launch: (opts: Record<string, unknown>) => Promise<Browser>;
+    };
+  };
+  const stealth = (await import("puppeteer-extra-plugin-stealth")).default;
+  chromium.use(stealth());
 
   const executablePath = await resolverExecutablePath();
   const browserArgs = await resolverArgs();
