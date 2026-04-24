@@ -114,11 +114,50 @@ async function executarTentativa(
     const ofertas = await extrairOfertas(page, linkCompra);
 
     if (ofertas.length === 0) {
+      await logDiagnostico(page);
       return { sucesso: false, ofertas: [], erro: "Nenhuma oferta extraída (possível bloqueio silencioso)" };
     }
     return { sucesso: true, ofertas };
   } finally {
     if (browser) await browser.close().catch(() => {});
+  }
+}
+
+async function logDiagnostico(page: Page): Promise<void> {
+  try {
+    const [url, title, info] = await Promise.all([
+      Promise.resolve(page.url()),
+      page.title().catch(() => ""),
+      page.evaluate(() => ({
+        bodyTextStart: document.body?.innerText?.slice(0, 500) ?? "",
+        clusterContainer: document.querySelectorAll("div.cluster-container").length,
+        itineraryOptimized: document.querySelectorAll("itinerary-optimized").length,
+        flightsPrice: document.querySelectorAll("flights-price").length,
+        anyDataSfaId: document.querySelectorAll("[data-sfa-id]").length,
+        allDivs: document.querySelectorAll("div").length,
+        htmlLen: document.documentElement.outerHTML.length,
+      })).catch((e: Error) => ({ error: e.message })),
+    ]);
+    console.log(
+      JSON.stringify({
+        scope: "flight-scraper",
+        provider: "decolar",
+        kind: "diagnostico-bloqueio-silencioso",
+        timestamp: new Date().toISOString(),
+        url,
+        title,
+        ...info,
+      }),
+    );
+  } catch (e) {
+    console.log(
+      JSON.stringify({
+        scope: "flight-scraper",
+        provider: "decolar",
+        kind: "diagnostico-falhou",
+        erro: e instanceof Error ? e.message : String(e),
+      }),
+    );
   }
 }
 
